@@ -1,21 +1,17 @@
-name: mlops
-channels:
-  - conda-forge
-dependencies:
-  - python=3.11
-  - pip
-  - numpy
-  - pandas
-  - scikit-learn
-  - matplotlib
-  - tqdm
-  - pyyaml
-  - rich
-  - typer
-  - pytest
-  - ruff
-  - pip:
-      - hydra-core==1.3.2
-      - omegaconf==2.3.0
-      - wandb
-      - opencv-python
+
+numpy
+pandas
+scikit-learn
+matplotlib
+tqdm
+pyyaml
+rich
+typer
+
+hydra-core==1.3.2
+omegaconf==2.3.0
+wandb
+pytest
+ruff
+
+opencv-python-headless
