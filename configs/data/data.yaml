@@ -1,0 +1,12 @@
+data:
+  clip_seconds: 4.0
+  stride_seconds: 2.0
+  target_fps: 10
+  img_size: 224
+  seed: 42
+  train_ratio: 0.8
+  val_ratio: 0.1
+  include_challenging: true
+  include_rash: true
+  include_beamng: true
+  force: false

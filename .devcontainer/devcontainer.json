@@ -5,25 +5,25 @@
     "context": ".."
   },
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-
   "runArgs": [
     "--gpus=all",
     "--ipc=host",
     "--shm-size=16g"
   ],
-
   "containerEnv": {
     "HYDRA_FULL_ERROR": "1",
     "NVIDIA_VISIBLE_DEVICES": "all",
     "NVIDIA_DRIVER_CAPABILITIES": "compute,utility"
   },
-
-  "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
-
+  "remoteEnv": {
+    "PYTHONPATH": "${containerWorkspaceFolder}"
+  },
+  "postCreateCommand": "bash -lc 'bash .devcontainer/postCreateCommand.sh'",
   "customizations": {
     "vscode": {
       "settings": {
         "python.defaultInterpreterPath": "/opt/conda/envs/mlops/bin/python",
+        "python.terminal.activateEnvironment": true,
         "editor.formatOnSave": true
       },
       "extensions": [
@@ -34,6 +34,5 @@
       ]
     }
   },
-
   "remoteUser": "vscode"
 }
