@@ -1,7 +1,0 @@
-defaults:
-  - data: data
-  - model: baseline
-  - trainer: default
-  - paths: default
-  - logging: default
-  - experiment: default
