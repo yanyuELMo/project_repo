@@ -10,11 +10,11 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
-from hydra.core.hydra_config import HydraConfig
 
 from src.model import build_model
 
@@ -32,7 +32,9 @@ IMAGENET_MEAN = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1)
 IMAGENET_STD = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
 
 
-def _sample_indices(t: int, k: int, train: bool, rng: np.random.Generator) -> np.ndarray:
+def _sample_indices(
+    t: int, k: int, train: bool, rng: np.random.Generator
+) -> np.ndarray:
     if t <= 0:
         raise ValueError("Clip has 0 frames.")
     if train:
@@ -44,7 +46,9 @@ def _sample_indices(t: int, k: int, train: bool, rng: np.random.Generator) -> np
 
 
 class ClipDataset(Dataset):
-    def __init__(self, df: pd.DataFrame, k_frames: int, train: bool, seed: int = 42) -> None:
+    def __init__(
+        self, df: pd.DataFrame, k_frames: int, train: bool, seed: int = 42
+    ) -> None:
         self.df = df.reset_index(drop=True)
         self.k_frames = int(k_frames)
         self.train = bool(train)
@@ -107,10 +111,12 @@ def evaluate(
             video_label.setdefault(v, int(yy))
 
     out: dict[str, Any] = {}
-    out["clip_acc"] = float(accuracy_score(
-        y_true, [int(p >= clip_threshold) for p in y_prob]))
-    out["clip_f1"] = float(f1_score(
-        y_true, [int(p >= clip_threshold) for p in y_prob], zero_division=0))
+    out["clip_acc"] = float(
+        accuracy_score(y_true, [int(p >= clip_threshold) for p in y_prob])
+    )
+    out["clip_f1"] = float(
+        f1_score(y_true, [int(p >= clip_threshold) for p in y_prob], zero_division=0)
+    )
     try:
         out["clip_auc"] = float(roc_auc_score(y_true, y_prob))
     except Exception:
@@ -129,10 +135,12 @@ def evaluate(
         v_prob.append(vp)
         v_true.append(video_label[v])
 
-    out["video_acc"] = float(accuracy_score(
-        v_true, [int(p >= video_threshold) for p in v_prob]))
-    out["video_f1"] = float(f1_score(
-        v_true, [int(p >= video_threshold) for p in v_prob], zero_division=0))
+    out["video_acc"] = float(
+        accuracy_score(v_true, [int(p >= video_threshold) for p in v_prob])
+    )
+    out["video_f1"] = float(
+        f1_score(v_true, [int(p >= video_threshold) for p in v_prob], zero_division=0)
+    )
     try:
         out["video_auc"] = float(roc_auc_score(v_true, v_prob))
     except Exception:
@@ -143,31 +151,49 @@ def evaluate(
 
 def train(cfg: DictConfig) -> None:
     if not CLIPS_CSV.exists():
-        raise FileNotFoundError(
-            f"Missing {CLIPS_CSV}. Run preprocessing first.")
+        raise FileNotFoundError(f"Missing {CLIPS_CSV}. Run preprocessing first.")
 
     df = pd.read_csv(CLIPS_CSV)
     train_df = df[df["split"] == "train"].copy()
     val_df = df[df["split"] == "val"].copy()
     test_df = df[df["split"] == "test"].copy()
 
-    device = torch.device("cuda" if torch.cuda.is_available()
-                          and not cfg.train.cpu else "cpu")
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() and not cfg.train.cpu else "cpu"
+    )
     LOGGER.info("Device: %s", device)
 
     train_ds = ClipDataset(
-        train_df, k_frames=cfg.train.k_frames, train=True, seed=cfg.train.seed)
-    val_ds = ClipDataset(val_df, k_frames=cfg.train.k_frames,
-                         train=False, seed=cfg.train.seed)
-    test_ds = ClipDataset(test_df, k_frames=cfg.train.k_frames,
-                          train=False, seed=cfg.train.seed)
+        train_df, k_frames=cfg.train.k_frames, train=True, seed=cfg.train.seed
+    )
+    val_ds = ClipDataset(
+        val_df, k_frames=cfg.train.k_frames, train=False, seed=cfg.train.seed
+    )
+    test_ds = ClipDataset(
+        test_df, k_frames=cfg.train.k_frames, train=False, seed=cfg.train.seed
+    )
 
-    train_loader = DataLoader(train_ds, batch_size=cfg.train.batch_size, shuffle=True,
-                              num_workers=cfg.train.num_workers, pin_memory=True)
-    val_loader = DataLoader(val_ds, batch_size=cfg.train.batch_size, shuffle=False,
-                            num_workers=cfg.train.num_workers, pin_memory=True)
-    test_loader = DataLoader(test_ds, batch_size=cfg.train.batch_size, shuffle=False,
-                             num_workers=cfg.train.num_workers, pin_memory=True)
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=cfg.train.batch_size,
+        shuffle=True,
+        num_workers=cfg.train.num_workers,
+        pin_memory=True,
+    )
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=cfg.train.batch_size,
+        shuffle=False,
+        num_workers=cfg.train.num_workers,
+        pin_memory=True,
+    )
+    test_loader = DataLoader(
+        test_ds,
+        batch_size=cfg.train.batch_size,
+        shuffle=False,
+        num_workers=cfg.train.num_workers,
+        pin_memory=True,
+    )
 
     model = build_model(cfg.model.name, pretrained=cfg.model.pretrained).to(device)
 
@@ -176,13 +202,16 @@ def train(cfg: DictConfig) -> None:
     pos_weight = None
     if n_pos > 0:
         pos_weight = torch.tensor(
-            [n_neg / max(n_pos, 1)], dtype=torch.float32, device=device)
-        LOGGER.info("pos_weight = %.4f (neg=%d, pos=%d)",
-                    float(pos_weight.item()), n_neg, n_pos)
+            [n_neg / max(n_pos, 1)], dtype=torch.float32, device=device
+        )
+        LOGGER.info(
+            "pos_weight = %.4f (neg=%d, pos=%d)", float(pos_weight.item()), n_neg, n_pos
+        )
 
     criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=cfg.train.lr, weight_decay=cfg.train.wd)
+        model.parameters(), lr=cfg.train.lr, weight_decay=cfg.train.wd
+    )
 
     best_score = -1.0
     reports_dir = Path(HydraConfig.get().runtime.output_dir)
@@ -228,11 +257,18 @@ def train(cfg: DictConfig) -> None:
 
         row = {"epoch": epoch, "train_loss": train_loss} | val_metrics
         history.append(row)
-        LOGGER.info("Epoch %d | loss=%.4f | val(video_auc)=%s",
-                    epoch, train_loss, str(val_metrics.get("video_auc")))
+        LOGGER.info(
+            "Epoch %d | loss=%.4f | val(video_auc)=%s",
+            epoch,
+            train_loss,
+            str(val_metrics.get("video_auc")),
+        )
 
-        score = val_metrics["video_auc"] if val_metrics["video_auc"] is not None else (
-            val_metrics["clip_auc"] or 0.0)
+        score = (
+            val_metrics["video_auc"]
+            if val_metrics["video_auc"] is not None
+            else (val_metrics["clip_auc"] or 0.0)
+        )
         if score is None:
             score = 0.0
 
@@ -246,8 +282,9 @@ def train(cfg: DictConfig) -> None:
                 "epoch": epoch,
             }
             torch.save(ckpt, best_ckpt_path)
-            LOGGER.info("Saved best checkpoint (score=%.4f) to %s",
-                        best_score, best_ckpt_path)
+            LOGGER.info(
+                "Saved best checkpoint (score=%.4f) to %s", best_score, best_ckpt_path
+            )
 
     if best_ckpt_path.exists():
         ckpt = torch.load(best_ckpt_path, map_location=device)

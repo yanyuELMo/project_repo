@@ -1,4 +1,3 @@
-# src/data.py
 from __future__ import annotations
 
 import argparse
@@ -16,24 +15,18 @@ from tqdm import tqdm
 LOGGER = logging.getLogger(__name__)
 
 
-# -----------------------------
-# Paths
-# -----------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
 
 
-# -----------------------------
-# Records
-# -----------------------------
 @dataclass(frozen=True)
 class VideoRecord:
     video_id: str
-    rel_path: str          # relative to project root
-    label: int             # 1 anomaly/accident, 0 normal
-    subset: str            # positive/negative/challenging/rash/beanNG
+    rel_path: str  # relative to project root
+    label: int  # 1 anomaly/accident, 0 normal
+    subset: str  # positive/negative/challenging/rash/beanNG
     suffix: str
     size_bytes: int
 
@@ -50,12 +43,9 @@ class ClipRecord:
     label: int
     subset: str
     split: str
-    rel_path: str          # npz path relative to project root
+    rel_path: str  # npz path relative to project root
 
 
-# -----------------------------
-# Video discovery
-# -----------------------------
 def _hash_id(*parts: str) -> str:
     h = hashlib.sha1()
     for p in parts:
@@ -79,7 +69,6 @@ def discover_videos(
     """
     candidates: list[tuple[Path, str, int]] = []
 
-    # Main folders
     pos_dir = raw_dir / "Final_videos" / "Positive_Vidoes"
     neg_dir = raw_dir / "Final_videos" / "Negative_Videos"
     chal_dir = raw_dir / "Final_videos" / "challenging-environment"
@@ -106,7 +95,6 @@ def discover_videos(
             f"Expected folders like data/raw/Final_videos/... and data/raw/Rash-Driving/..."
         )
 
-    # De-dup (lightweight): same (name+suffix+size) considered same asset
     seen = {}
     records: list[VideoRecord] = []
     for path, subset, label in candidates:
@@ -139,15 +127,11 @@ def discover_videos(
         seen[key] = rec
         records.append(rec)
 
-    # Sort for determinism
     records.sort(key=lambda r: (r.label, r.subset, r.rel_path))
     LOGGER.info("Discovered %d videos", len(records))
     return records
 
 
-# -----------------------------
-# Splitting (by video)
-# -----------------------------
 def split_videos(
     videos: list[VideoRecord],
     seed: int = 42,
@@ -173,8 +157,8 @@ def split_videos(
         n_train = min(n_train, n)
         n_val = min(n_val, n - n_train)
         train_ids = idx[:n_train]
-        val_ids = idx[n_train: n_train + n_val]
-        test_ids = idx[n_train + n_val:]
+        val_ids = idx[n_train : n_train + n_val]
+        test_ids = idx[n_train + n_val :]
 
         for i in train_ids:
             mapping[group[i].video_id] = "train"
@@ -186,9 +170,6 @@ def split_videos(
     return mapping
 
 
-# -----------------------------
-# Video decoding -> clips
-# -----------------------------
 def _read_clip_cv2(
     video_path: Path,
     start_sec: float,
@@ -238,7 +219,8 @@ def _read_clip_cv2(
             continue
         frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         frame_rgb = cv2.resize(
-            frame_rgb, (img_size, img_size), interpolation=cv2.INTER_AREA)
+            frame_rgb, (img_size, img_size), interpolation=cv2.INTER_AREA
+        )
         frames.append(frame_rgb.astype(np.uint8))
         if len(frames) >= n_frames:
             break
@@ -246,10 +228,8 @@ def _read_clip_cv2(
     cap.release()
 
     if len(frames) == 0:
-        raise RuntimeError(
-            f"Got 0 frames from {video_path} at start={start_sec}")
+        raise RuntimeError(f"Got 0 frames from {video_path} at start={start_sec}")
 
-    # pad if short
     while len(frames) < n_frames:
         frames.append(frames[-1].copy())
 
@@ -263,8 +243,7 @@ def _safe_duration_seconds(video_path: Path) -> float:
     try:
         import cv2
     except ImportError as e:
-        raise ImportError(
-            "opencv-python is required. pip install opencv-python") from e
+        raise ImportError("opencv-python is required. pip install opencv-python") from e
 
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
@@ -295,8 +274,7 @@ def generate_clips_for_video(
     video_path = PROJECT_ROOT / video.rel_path
     duration = _safe_duration_seconds(video_path)
     if duration <= 0:
-        LOGGER.warning(
-            "Could not read duration for %s, skipping.", video.rel_path)
+        LOGGER.warning("Could not read duration for %s, skipping.", video.rel_path)
         return []
 
     # start times (sliding window)
@@ -305,10 +283,19 @@ def generate_clips_for_video(
     out: list[ClipRecord] = []
 
     for s in starts:
-        clip_id = _hash_id(video.video_id, f"{s:.3f}", f"{clip_seconds:.3f}", str(
-            target_fps), str(img_size))
+        clip_id = _hash_id(
+            video.video_id,
+            f"{s:.3f}",
+            f"{clip_seconds:.3f}",
+            str(target_fps),
+            str(img_size),
+        )
         npz_rel = (
-            clips_dir / f"{clip_id}.npz").resolve().relative_to(PROJECT_ROOT.resolve()).as_posix()
+            (clips_dir / f"{clip_id}.npz")
+            .resolve()
+            .relative_to(PROJECT_ROOT.resolve())
+            .as_posix()
+        )
         npz_path = PROJECT_ROOT / npz_rel
 
         if npz_path.exists():
@@ -357,9 +344,6 @@ def generate_clips_for_video(
     return out
 
 
-# -----------------------------
-# Writers
-# -----------------------------
 def _write_csv(path: Path, rows: Iterable[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     rows = list(rows)
@@ -404,11 +388,11 @@ def preprocess(
 
     cfg_path = manifests_dir / "preprocess.json"
     if cfg_path.exists() and not force:
-        # If config matches, we can skip; else require force to avoid silent mismatch
         old = json.loads(cfg_path.read_text(encoding="utf-8"))
         if old == preprocess_cfg:
             LOGGER.info(
-                "preprocess.json matches and force=False. Will reuse existing artifacts.")
+                "preprocess.json matches and force=False. Will reuse existing artifacts."
+            )
         else:
             raise RuntimeError(
                 "Existing preprocess.json differs from current config. "
@@ -422,17 +406,15 @@ def preprocess(
         include_beamng=include_beamng,
     )
     split_map = split_videos(
-        videos, seed=seed, train_ratio=train_ratio, val_ratio=val_ratio)
+        videos, seed=seed, train_ratio=train_ratio, val_ratio=val_ratio
+    )
 
-    # Write videos manifest
     videos_csv = manifests_dir / "videos.csv"
     _write_csv(
         videos_csv,
-        [asdict(v) | {"split": split_map.get(v.video_id, "train")}
-         for v in videos],
+        [asdict(v) | {"split": split_map.get(v.video_id, "train")} for v in videos],
     )
 
-    # Generate clips
     all_clips: list[ClipRecord] = []
     for v in tqdm(videos, desc="Preprocessing videos -> clips"):
         v_split = split_map.get(v.video_id, "train")
@@ -454,31 +436,38 @@ def preprocess(
     manifests_dir.mkdir(parents=True, exist_ok=True)
     cfg_path.write_text(json.dumps(preprocess_cfg, indent=2), encoding="utf-8")
 
-    # Simple stats
     stats = {
         "n_videos": len(videos),
         "n_clips": len(all_clips),
         "by_split": {
-            s: sum(1 for c in all_clips if c.split == s) for s in ["train", "val", "test"]
+            s: sum(1 for c in all_clips if c.split == s)
+            for s in ["train", "val", "test"]
         },
         "by_label": {
             "0": sum(1 for c in all_clips if c.label == 0),
             "1": sum(1 for c in all_clips if c.label == 1),
         },
-        "by_subset": {sub: sum(1 for c in all_clips if c.subset == sub) for sub in sorted({c.subset for c in all_clips})},
+        "by_subset": {
+            sub: sum(1 for c in all_clips if c.subset == sub)
+            for sub in sorted({c.subset for c in all_clips})
+        },
     }
-    (manifests_dir / "stats.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
+    (manifests_dir / "stats.json").write_text(
+        json.dumps(stats, indent=2), encoding="utf-8"
+    )
 
-    LOGGER.info("Done. Wrote:\n- %s\n- %s\n- %s", videos_csv,
-                clips_csv, manifests_dir / "stats.json")
+    LOGGER.info(
+        "Done. Wrote:\n- %s\n- %s\n- %s",
+        videos_csv,
+        clips_csv,
+        manifests_dir / "stats.json",
+    )
 
 
-# -----------------------------
-# CLI
-# -----------------------------
 def build_argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        description="Preprocess TU-DAT videos into clip dataset.")
+        description="Preprocess TU-DAT videos into clip dataset."
+    )
     p.add_argument("--clip-seconds", type=float, default=4.0)
     p.add_argument("--stride-seconds", type=float, default=2.0)
     p.add_argument("--target-fps", type=int, default=10)
@@ -499,8 +488,10 @@ def build_argparser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_argparser().parse_args()
-    logging.basicConfig(level=getattr(logging, args.log_level.upper(
-    ), logging.INFO), format="%(levelname)s - %(message)s")
+    logging.basicConfig(
+        level=getattr(logging, args.log_level.upper(), logging.INFO),
+        format="%(levelname)s - %(message)s",
+    )
 
     preprocess(
         clip_seconds=args.clip_seconds,
