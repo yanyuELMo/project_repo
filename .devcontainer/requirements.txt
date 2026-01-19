@@ -13,5 +13,7 @@ omegaconf==2.3.0
 wandb
 pytest
 ruff
+black
+isort
 
 opencv-python-headless

@@ -6,3 +6,6 @@ The goal is to build an end-to-end MLOps pipeline for a practical computer visio
 Data source:https://github.com/pavana27/TU-DAT
 > In this course, we focus on building a reliable ML system (training → evaluation → deployment → monitoring).
 
+## Development
+
+- Formatting: `isort src tests` then `black src tests` (config in `pyproject.toml`).

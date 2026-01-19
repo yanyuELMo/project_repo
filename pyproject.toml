@@ -1,0 +1,29 @@
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+exclude = """
+/(
+    \\.git
+  | \\.venv
+  | __pycache__
+  | build
+  | dist
+  | data/processed/clips
+  | artifacts
+  | multirun
+  | outputs
+  | reports
+)/
+"""
+
+[tool.isort]
+profile = "black"
+line_length = 88
+src_paths = ["src", "tests"]
+skip = [
+  "data/processed/clips",
+  "artifacts",
+  "multirun",
+  "outputs",
+  "reports",
+]

@@ -33,7 +33,9 @@ def _build_resnet18(pretrained: bool) -> tuple[nn.Module, int]:
     return resnet, feat_dim
 
 
-def build_model(name: Literal["temporal_avg_resnet18"], pretrained: bool = True) -> nn.Module:
+def build_model(
+    name: Literal["temporal_avg_resnet18"], pretrained: bool = True
+) -> nn.Module:
     if name == "temporal_avg_resnet18":
         return TemporalAvgResNet(pretrained=pretrained)
     raise ValueError(f"Unknown model: {name}")
