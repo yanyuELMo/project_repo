@@ -15,6 +15,13 @@ Data source:https://github.com/pavana27/TU-DAT
   - Report: `python -m src.cli report --mode html|check`
   - Format: `python -m src.cli format`
 
+## Experiment tracking (Weights & Biases)
+
+- Default: disabled (`wandb.enabled=false` in `configs/train/train.yaml`).
+- Enable with overrides, e.g. `python -m src.cli train wandb.enabled=true wandb.project=your_project`.
+- Logs clip-level metrics per epoch; can upload best checkpoint/metrics as artifacts when `log_checkpoints`/`log_artifacts` are true.
+- Supports `mode=offline` for environments without network access.
+
 ## Data versioning (DVC)
 
 - Tracked with DVC: `data/raw` and `data/processed/clips`.

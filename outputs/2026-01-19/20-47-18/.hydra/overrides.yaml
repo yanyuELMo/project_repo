@@ -1,0 +1,3 @@
+- wandb.enabled=true
+- wandb.project=accident-detection
+- wandb.mode=online

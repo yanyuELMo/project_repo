@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import hydra
 import numpy as np
@@ -159,6 +159,32 @@ def evaluate(
     return out
 
 
+def _maybe_init_wandb(cfg: DictConfig, reports_dir: Path) -> Optional[Any]:
+    """Initialize wandb run if enabled in config."""
+    wandb_cfg = cfg.get("wandb")
+    if not wandb_cfg or not wandb_cfg.get("enabled", False):
+        return None
+
+    try:
+        import wandb  # type: ignore
+    except ImportError:
+        LOGGER.warning("wandb not installed; skipping wandb logging.")
+        return None
+
+    run = wandb.init(
+        project=wandb_cfg.get("project"),
+        entity=wandb_cfg.get("entity"),
+        name=wandb_cfg.get("run_name") or reports_dir.name,
+        tags=wandb_cfg.get("tags") or None,
+        config=OmegaConf.to_container(cfg, resolve=True),
+        dir=str(reports_dir),
+        mode=wandb_cfg.get("mode"),
+        reinit=True,
+    )
+    LOGGER.info("Initialized wandb run: %s", run.name)
+    return run
+
+
 def train(cfg: DictConfig) -> None:
     if not CLIPS_CSV.exists():
         raise FileNotFoundError(
@@ -238,6 +264,8 @@ def train(cfg: DictConfig) -> None:
     ckpt_dir.mkdir(parents=True, exist_ok=True)
     metrics_dir.mkdir(parents=True, exist_ok=True)
     best_ckpt_path = ckpt_dir / "best.pt"
+    wandb_run = _maybe_init_wandb(cfg, reports_dir)
+    wandb_cfg = cfg.get("wandb") or {}
 
     history: list[dict[str, Any]] = []
 
@@ -280,6 +308,14 @@ def train(cfg: DictConfig) -> None:
             str(val_metrics.get("video_auc")),
         )
 
+        if wandb_run:
+            log_payload = {
+                "epoch": epoch,
+                "train_loss": train_loss,
+                **{f"val/{k}": v for k, v in val_metrics.items() if v is not None},
+            }
+            wandb_run.log(log_payload, step=epoch)
+
         score_candidates = [
             val_metrics.get("video_auc") if cfg.eval.use_video_metrics else None,
             val_metrics.get("clip_auc"),
@@ -300,6 +336,16 @@ def train(cfg: DictConfig) -> None:
             LOGGER.info(
                 "Saved best checkpoint (score=%.4f) to %s", best_score, best_ckpt_path
             )
+            if wandb_run and wandb_cfg.get("log_checkpoints", False):
+                import wandb  # type: ignore
+
+                artifact = wandb.Artifact(
+                    name=f"{cfg.model.name}-best",
+                    type="model",
+                    metadata={"best_score": best_score, "epoch": epoch},
+                )
+                artifact.add_file(str(best_ckpt_path))
+                wandb_run.log_artifact(artifact)
 
     if best_ckpt_path.exists():
         ckpt = torch.load(best_ckpt_path, map_location=device)
@@ -330,6 +376,25 @@ def train(cfg: DictConfig) -> None:
         hydra_metrics_path.write_text(
             json.dumps(out, indent=2), encoding="utf-8")
         LOGGER.info("Wrote %s", hydra_metrics_path)
+
+    if wandb_run:
+        wandb_run.summary["best_val_score"] = best_score
+        wandb_run.log(
+            {f"test/{k}": v for k, v in test_metrics.items() if v is not None},
+            step=cfg.train.epochs + 1,
+        )
+        if wandb_cfg.get("log_artifacts", False):
+            import wandb  # type: ignore
+
+            metrics_artifact = wandb.Artifact(
+                name=f"metrics-{reports_dir.name}",
+                type="metrics",
+            )
+            metrics_artifact.add_file(str(metrics_path))
+            if hydra_metrics_path.exists() and hydra_metrics_path != metrics_path:
+                metrics_artifact.add_file(str(hydra_metrics_path))
+            wandb_run.log_artifact(metrics_artifact)
+        wandb_run.finish()
 
 
 @hydra.main(config_path="../configs/train", config_name="train", version_base=None)
