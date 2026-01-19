@@ -89,11 +89,12 @@ def evaluate(
     clip_threshold: float,
     video_threshold: float,
     ratio_threshold: float,
+    use_video_metrics: bool = True,
 ) -> dict[str, Any]:
     model.eval()
     y_true, y_prob = [], []
-    video_probs: dict[str, list[float]] = {}
-    video_label: dict[str, int] = {}
+    video_probs: dict[str, list[float]] = {} if use_video_metrics else {}
+    video_label: dict[str, int] = {} if use_video_metrics else {}
 
     for batch in loader:
         x = batch["x"].to(device)
@@ -106,9 +107,10 @@ def evaluate(
         y_true.extend(y)
         y_prob.extend(prob)
 
-        for v, p, yy in zip(vids, prob, y):
-            video_probs.setdefault(v, []).append(float(p))
-            video_label.setdefault(v, int(yy))
+        if use_video_metrics:
+            for v, p, yy in zip(vids, prob, y):
+                video_probs.setdefault(v, []).append(float(p))
+                video_label.setdefault(v, int(yy))
 
     out: dict[str, Any] = {}
     out["clip_acc"] = float(
@@ -122,6 +124,12 @@ def evaluate(
         out["clip_auc"] = float(roc_auc_score(y_true, y_prob))
     except Exception:
         out["clip_auc"] = None
+
+    if not use_video_metrics:
+        out["video_acc"] = None
+        out["video_f1"] = None
+        out["video_auc"] = None
+        return out
 
     v_true, v_prob = [], []
     for v, probs in video_probs.items():
@@ -258,24 +266,26 @@ def train(cfg: DictConfig) -> None:
             clip_threshold=cfg.eval.clip_threshold,
             video_threshold=cfg.eval.video_threshold,
             ratio_threshold=cfg.eval.ratio_threshold,
+            use_video_metrics=cfg.eval.use_video_metrics,
         )
 
         row = {"epoch": epoch, "train_loss": train_loss} | val_metrics
         history.append(row)
         LOGGER.info(
-            "Epoch %d | loss=%.4f | val(video_auc)=%s",
+            "Epoch %d | loss=%.4f | val clip_auc=%s clip_f1=%.3f video_auc=%s",
             epoch,
             train_loss,
+            str(val_metrics.get("clip_auc")),
+            val_metrics.get("clip_f1", 0.0),
             str(val_metrics.get("video_auc")),
         )
 
-        score = (
-            val_metrics["video_auc"]
-            if val_metrics["video_auc"] is not None
-            else (val_metrics["clip_auc"] or 0.0)
-        )
-        if score is None:
-            score = 0.0
+        score_candidates = [
+            val_metrics.get("video_auc") if cfg.eval.use_video_metrics else None,
+            val_metrics.get("clip_auc"),
+            val_metrics.get("clip_f1"),
+        ]
+        score = next((s for s in score_candidates if s is not None), 0.0)
 
         if float(score) > best_score:
             best_score = float(score)
@@ -303,6 +313,7 @@ def train(cfg: DictConfig) -> None:
         clip_threshold=cfg.eval.clip_threshold,
         video_threshold=cfg.eval.video_threshold,
         ratio_threshold=cfg.eval.ratio_threshold,
+        use_video_metrics=cfg.eval.use_video_metrics,
     )
     out = {
         "best_val_score": best_score,

@@ -1,7 +1,7 @@
 train:
-  epochs: 5
+  epochs: 10
   batch_size: 8
-  lr: 1e-4
+  lr: 5e-5
   wd: 1e-4
   k_frames: 8
   seed: 42
@@ -10,6 +10,7 @@ train:
   log_level: INFO
 
 eval:
+  use_video_metrics: false
   agg: max  # max|mean|ratio
   clip_threshold: 0.5
   video_threshold: 0.5
