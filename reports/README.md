@@ -71,11 +71,7 @@ will check the repositories and the code to verify your answers.
 * [X] Use profiling to optimize your code (M12)
 * [X] Use logging to log important events in your code (M14)
 * [X] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14)
-<<<<<<< HEAD
 * [X] Consider running a hyperparameter optimization sweep (M14)
-=======
-* [ ] Consider running a hyperparameter optimization sweep (M14)
->>>>>>> 6bc8c8603011e6720f80014c48d1bb60d0dc05c8
 * [ ] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15)
 
 ### Week 2
