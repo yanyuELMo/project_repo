@@ -1,0 +1,3 @@
+- eval.agg=ratio
+- eval.ratio_threshold=0.7
+- eval.video_threshold=0.4
