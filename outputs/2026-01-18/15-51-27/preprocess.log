@@ -1,0 +1,5 @@
+[2026-01-18 15:51:27,675][src.data][INFO] - Discovered 126 videos
+[2026-01-18 18:47:00,941][src.data][INFO] - Done. Wrote:
+- /workspaces/project_repo/data/processed/manifests/videos.csv
+- /workspaces/project_repo/data/processed/manifests/clips.csv
+- /workspaces/project_repo/data/processed/manifests/stats.json

@@ -1,0 +1,291 @@
+from __future__ import annotations
+
+import json
+import logging
+from pathlib import Path
+from typing import Any
+
+import hydra
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+from omegaconf import DictConfig, OmegaConf
+from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+from torch.utils.data import DataLoader, Dataset
+from tqdm import tqdm
+from hydra.core.hydra_config import HydraConfig
+
+from src.model import build_model
+
+LOGGER = logging.getLogger(__name__)
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
+CHECKPOINTS_ROOT = ARTIFACTS_DIR / "checkpoints"
+METRICS_ROOT = ARTIFACTS_DIR / "metrics"
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+MANIFESTS_DIR = PROCESSED_DIR / "manifests"
+CLIPS_CSV = MANIFESTS_DIR / "clips.csv"
+
+IMAGENET_MEAN = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1)
+IMAGENET_STD = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
+
+
+def _sample_indices(t: int, k: int, train: bool, rng: np.random.Generator) -> np.ndarray:
+    if t <= 0:
+        raise ValueError("Clip has 0 frames.")
+    if train:
+        replace = t < k
+        idx = rng.choice(t, size=k, replace=replace)
+        idx.sort()
+        return idx
+    return np.linspace(0, t - 1, num=k).round().astype(int)
+
+
+class ClipDataset(Dataset):
+    def __init__(self, df: pd.DataFrame, k_frames: int, train: bool, seed: int = 42) -> None:
+        self.df = df.reset_index(drop=True)
+        self.k_frames = int(k_frames)
+        self.train = bool(train)
+        self.rng = np.random.default_rng(seed)
+
+    def __len__(self) -> int:
+        return len(self.df)
+
+    def __getitem__(self, idx: int) -> dict[str, Any]:
+        row = self.df.iloc[idx]
+        npz_path = PROJECT_ROOT / row["rel_path"]
+        data = np.load(npz_path, allow_pickle=False)
+        frames = data["frames"]
+        label = int(row["label"])
+        video_id = str(row["video_id"])
+
+        t = int(frames.shape[0])
+        sel = _sample_indices(t, self.k_frames, self.train, self.rng)
+        frames = frames[sel]
+
+        x = torch.from_numpy(frames).float() / 255.0
+        x = x.permute(0, 3, 1, 2).contiguous()
+
+        mean = IMAGENET_MEAN.to(dtype=x.dtype)
+        std = IMAGENET_STD.to(dtype=x.dtype)
+        x = (x - mean) / std
+
+        y = torch.tensor(label, dtype=torch.float32)
+        return {"x": x, "y": y, "video_id": video_id}
+
+
+@torch.no_grad()
+def evaluate(
+    model: nn.Module,
+    loader: DataLoader,
+    device: torch.device,
+    agg: str,
+    clip_threshold: float,
+    video_threshold: float,
+    ratio_threshold: float,
+) -> dict[str, Any]:
+    model.eval()
+    y_true, y_prob = [], []
+    video_probs: dict[str, list[float]] = {}
+    video_label: dict[str, int] = {}
+
+    for batch in loader:
+        x = batch["x"].to(device)
+        y = batch["y"].cpu().numpy().astype(int).tolist()
+        vids = batch["video_id"]
+
+        logits = model(x)
+        prob = torch.sigmoid(logits).detach().cpu().numpy().tolist()
+
+        y_true.extend(y)
+        y_prob.extend(prob)
+
+        for v, p, yy in zip(vids, prob, y):
+            video_probs.setdefault(v, []).append(float(p))
+            video_label.setdefault(v, int(yy))
+
+    out: dict[str, Any] = {}
+    out["clip_acc"] = float(accuracy_score(
+        y_true, [int(p >= clip_threshold) for p in y_prob]))
+    out["clip_f1"] = float(f1_score(
+        y_true, [int(p >= clip_threshold) for p in y_prob], zero_division=0))
+    try:
+        out["clip_auc"] = float(roc_auc_score(y_true, y_prob))
+    except Exception:
+        out["clip_auc"] = None
+
+    v_true, v_prob = [], []
+    for v, probs in video_probs.items():
+        if agg == "max":
+            vp = max(probs)
+        elif agg == "mean":
+            vp = float(np.mean(probs))
+        elif agg == "ratio":
+            vp = float(np.mean([p >= ratio_threshold for p in probs]))
+        else:
+            raise ValueError("agg must be max|mean|ratio")
+        v_prob.append(vp)
+        v_true.append(video_label[v])
+
+    out["video_acc"] = float(accuracy_score(
+        v_true, [int(p >= video_threshold) for p in v_prob]))
+    out["video_f1"] = float(f1_score(
+        v_true, [int(p >= video_threshold) for p in v_prob], zero_division=0))
+    try:
+        out["video_auc"] = float(roc_auc_score(v_true, v_prob))
+    except Exception:
+        out["video_auc"] = None
+
+    return out
+
+
+def train(cfg: DictConfig) -> None:
+    if not CLIPS_CSV.exists():
+        raise FileNotFoundError(
+            f"Missing {CLIPS_CSV}. Run preprocessing first.")
+
+    df = pd.read_csv(CLIPS_CSV)
+    train_df = df[df["split"] == "train"].copy()
+    val_df = df[df["split"] == "val"].copy()
+    test_df = df[df["split"] == "test"].copy()
+
+    device = torch.device("cuda" if torch.cuda.is_available()
+                          and not cfg.train.cpu else "cpu")
+    LOGGER.info("Device: %s", device)
+
+    train_ds = ClipDataset(
+        train_df, k_frames=cfg.train.k_frames, train=True, seed=cfg.train.seed)
+    val_ds = ClipDataset(val_df, k_frames=cfg.train.k_frames,
+                         train=False, seed=cfg.train.seed)
+    test_ds = ClipDataset(test_df, k_frames=cfg.train.k_frames,
+                          train=False, seed=cfg.train.seed)
+
+    train_loader = DataLoader(train_ds, batch_size=cfg.train.batch_size, shuffle=True,
+                              num_workers=cfg.train.num_workers, pin_memory=True)
+    val_loader = DataLoader(val_ds, batch_size=cfg.train.batch_size, shuffle=False,
+                            num_workers=cfg.train.num_workers, pin_memory=True)
+    test_loader = DataLoader(test_ds, batch_size=cfg.train.batch_size, shuffle=False,
+                             num_workers=cfg.train.num_workers, pin_memory=True)
+
+    model = build_model(cfg.model.name, pretrained=cfg.model.pretrained).to(device)
+
+    n_pos = int((train_df["label"] == 1).sum())
+    n_neg = int((train_df["label"] == 0).sum())
+    pos_weight = None
+    if n_pos > 0:
+        pos_weight = torch.tensor(
+            [n_neg / max(n_pos, 1)], dtype=torch.float32, device=device)
+        LOGGER.info("pos_weight = %.4f (neg=%d, pos=%d)",
+                    float(pos_weight.item()), n_neg, n_pos)
+
+    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    optimizer = torch.optim.AdamW(
+        model.parameters(), lr=cfg.train.lr, weight_decay=cfg.train.wd)
+
+    best_score = -1.0
+    reports_dir = Path(HydraConfig.get().runtime.output_dir)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        run_suffix = reports_dir.relative_to(PROJECT_ROOT)
+    except ValueError:
+        run_suffix = Path(reports_dir.name)
+    ckpt_dir = CHECKPOINTS_ROOT / run_suffix
+    metrics_dir = METRICS_ROOT / run_suffix
+    ckpt_dir.mkdir(parents=True, exist_ok=True)
+    metrics_dir.mkdir(parents=True, exist_ok=True)
+    best_ckpt_path = ckpt_dir / "best.pt"
+
+    history: list[dict[str, Any]] = []
+
+    for epoch in range(1, cfg.train.epochs + 1):
+        model.train()
+        losses = []
+
+        for batch in tqdm(train_loader, desc=f"Epoch {epoch}/{cfg.train.epochs}"):
+            x = batch["x"].to(device)
+            y = batch["y"].to(device)
+
+            optimizer.zero_grad(set_to_none=True)
+            logits = model(x)
+            loss = criterion(logits, y)
+            loss.backward()
+            optimizer.step()
+
+            losses.append(float(loss.item()))
+
+        train_loss = float(np.mean(losses)) if losses else float("nan")
+        val_metrics = evaluate(
+            model,
+            val_loader,
+            device=device,
+            agg=cfg.eval.agg,
+            clip_threshold=cfg.eval.clip_threshold,
+            video_threshold=cfg.eval.video_threshold,
+            ratio_threshold=cfg.eval.ratio_threshold,
+        )
+
+        row = {"epoch": epoch, "train_loss": train_loss} | val_metrics
+        history.append(row)
+        LOGGER.info("Epoch %d | loss=%.4f | val(video_auc)=%s",
+                    epoch, train_loss, str(val_metrics.get("video_auc")))
+
+        score = val_metrics["video_auc"] if val_metrics["video_auc"] is not None else (
+            val_metrics["clip_auc"] or 0.0)
+        if score is None:
+            score = 0.0
+
+        if float(score) > best_score:
+            best_score = float(score)
+            ckpt = {
+                "model": cfg.model.name,
+                "state_dict": model.state_dict(),
+                "config": OmegaConf.to_container(cfg, resolve=True),
+                "best_score": best_score,
+                "epoch": epoch,
+            }
+            torch.save(ckpt, best_ckpt_path)
+            LOGGER.info("Saved best checkpoint (score=%.4f) to %s",
+                        best_score, best_ckpt_path)
+
+    if best_ckpt_path.exists():
+        ckpt = torch.load(best_ckpt_path, map_location=device)
+        model.load_state_dict(ckpt["state_dict"])
+
+    test_metrics = evaluate(
+        model,
+        test_loader,
+        device=device,
+        agg=cfg.eval.agg,
+        clip_threshold=cfg.eval.clip_threshold,
+        video_threshold=cfg.eval.video_threshold,
+        ratio_threshold=cfg.eval.ratio_threshold,
+    )
+    out = {
+        "best_val_score": best_score,
+        "test": test_metrics,
+        "history": history,
+        "config": OmegaConf.to_container(cfg, resolve=True),
+    }
+    metrics_path = metrics_dir / "metrics.json"
+    metrics_path.write_text(json.dumps(out, indent=2), encoding="utf-8")
+    LOGGER.info("Wrote %s", metrics_path)
+    # Keep a copy in the Hydra run directory for convenience.
+    hydra_metrics_path = reports_dir / "metrics.json"
+    if hydra_metrics_path != metrics_path:
+        hydra_metrics_path.write_text(json.dumps(out, indent=2), encoding="utf-8")
+        LOGGER.info("Wrote %s", hydra_metrics_path)
+
+
+@hydra.main(config_path="../configs/train", config_name="train", version_base=None)
+def main(cfg: DictConfig) -> None:
+    logging.basicConfig(
+        level=getattr(logging, cfg.train.log_level.upper(), logging.INFO),
+        format="%(levelname)s - %(message)s",
+    )
+    train(cfg)
+
+
+if __name__ == "__main__":
+    main()

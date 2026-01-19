@@ -1,0 +1,34 @@
+[2026-01-19 16:19:26,492][__main__][INFO] - Device: cuda
+[2026-01-19 16:19:26,636][__main__][INFO] - pos_weight = 0.0706 (neg=49, pos=694)
+[2026-01-19 16:19:48,468][__main__][INFO] - Epoch 1 | loss=0.0792 | val(video_auc)=0.5
+[2026-01-19 16:19:48,557][__main__][INFO] - Saved best checkpoint (score=0.5000) to models/best.pt
+[2026-01-19 16:20:07,797][__main__][INFO] - Epoch 2 | loss=0.0521 | val(video_auc)=0.3
+[2026-01-19 16:20:26,706][__main__][INFO] - Epoch 3 | loss=0.0437 | val(video_auc)=0.11249999999999998
+[2026-01-19 16:20:46,053][__main__][INFO] - Epoch 4 | loss=0.0375 | val(video_auc)=0.0
+[2026-01-19 16:21:07,835][__main__][INFO] - Epoch 5 | loss=0.0371 | val(video_auc)=0.125
+[2026-01-19 16:21:27,273][__main__][INFO] - Epoch 6 | loss=0.0379 | val(video_auc)=0.0
+[2026-01-19 16:21:46,258][__main__][INFO] - Epoch 7 | loss=0.0443 | val(video_auc)=0.14999999999999997
+[2026-01-19 16:22:05,248][__main__][INFO] - Epoch 8 | loss=0.0460 | val(video_auc)=0.075
+[2026-01-19 16:22:27,267][__main__][INFO] - Epoch 9 | loss=0.0366 | val(video_auc)=0.09999999999999998
+[2026-01-19 16:22:46,197][__main__][INFO] - Epoch 10 | loss=0.0371 | val(video_auc)=0.0
+[2026-01-19 16:23:03,486][__main__][INFO] - Epoch 11 | loss=0.0291 | val(video_auc)=0.0625
+[2026-01-19 16:23:24,847][__main__][INFO] - Epoch 12 | loss=0.0289 | val(video_auc)=0.0
+[2026-01-19 16:23:45,828][__main__][INFO] - Epoch 13 | loss=0.0253 | val(video_auc)=0.0625
+[2026-01-19 16:24:02,739][__main__][INFO] - Epoch 14 | loss=0.0248 | val(video_auc)=0.0625
+[2026-01-19 16:24:21,774][__main__][INFO] - Epoch 15 | loss=0.0215 | val(video_auc)=0.0625
+[2026-01-19 16:24:43,431][__main__][INFO] - Epoch 16 | loss=0.0220 | val(video_auc)=0.0625
+[2026-01-19 16:25:04,673][__main__][INFO] - Epoch 17 | loss=0.0303 | val(video_auc)=0.175
+[2026-01-19 16:25:24,114][__main__][INFO] - Epoch 18 | loss=0.0268 | val(video_auc)=0.0625
+[2026-01-19 16:25:41,186][__main__][INFO] - Epoch 19 | loss=0.0306 | val(video_auc)=0.0625
+[2026-01-19 16:26:03,375][__main__][INFO] - Epoch 20 | loss=0.0257 | val(video_auc)=0.0625
+[2026-01-19 16:26:24,681][__main__][INFO] - Epoch 21 | loss=0.0223 | val(video_auc)=0.125
+[2026-01-19 16:26:44,158][__main__][INFO] - Epoch 22 | loss=0.0234 | val(video_auc)=0.0625
+[2026-01-19 16:27:06,429][__main__][INFO] - Epoch 23 | loss=0.0217 | val(video_auc)=0.0625
+[2026-01-19 16:27:23,427][__main__][INFO] - Epoch 24 | loss=0.0199 | val(video_auc)=0.0
+[2026-01-19 16:27:44,632][__main__][INFO] - Epoch 25 | loss=0.0230 | val(video_auc)=0.0625
+[2026-01-19 16:28:03,648][__main__][INFO] - Epoch 26 | loss=0.0216 | val(video_auc)=0.0625
+[2026-01-19 16:28:25,520][__main__][INFO] - Epoch 27 | loss=0.0304 | val(video_auc)=0.375
+[2026-01-19 16:28:44,843][__main__][INFO] - Epoch 28 | loss=0.0317 | val(video_auc)=0.09999999999999998
+[2026-01-19 16:29:03,954][__main__][INFO] - Epoch 29 | loss=0.0310 | val(video_auc)=0.0625
+[2026-01-19 16:29:21,493][__main__][INFO] - Epoch 30 | loss=0.0210 | val(video_auc)=0.0625
+[2026-01-19 16:29:23,108][__main__][INFO] - Wrote /workspaces/project_repo/multirun/2026-01-19/13-29-23/33/metrics.json

@@ -3,7 +3,7 @@ from omegaconf import DictConfig
 from src.data import preprocess
 
 
-@hydra.main(config_path="../configs", config_name="config", version_base=None)
+@hydra.main(config_path="../configs/data", config_name="data", version_base=None)
 def main(cfg: DictConfig):
     preprocess(**cfg.data)
 

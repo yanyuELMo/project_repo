@@ -1,0 +1,2 @@
+# Placeholder to satisfy Hydra defaults when experiment configs are absent.
+experiment: {}

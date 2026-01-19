@@ -1,5 +1,5 @@
 {
-  "name": "mlops-conda",
+  "name": "mlops-devcontainer",
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".."
@@ -16,7 +16,8 @@
     "NVIDIA_DRIVER_CAPABILITIES": "compute,utility"
   },
   "remoteEnv": {
-    "PYTHONPATH": "${containerWorkspaceFolder}"
+    "PYTHONPATH": "${containerWorkspaceFolder}",
+    "PATH": "/opt/conda/envs/mlops/bin:/opt/conda/bin:${containerEnv:PATH}"
   },
   "postCreateCommand": "bash -lc 'bash .devcontainer/postCreateCommand.sh'",
   "customizations": {

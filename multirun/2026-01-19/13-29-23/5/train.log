@@ -1,0 +1,14 @@
+[2026-01-19 13:46:16,548][__main__][INFO] - Device: cuda
+[2026-01-19 13:46:16,704][__main__][INFO] - pos_weight = 0.0706 (neg=49, pos=694)
+[2026-01-19 13:46:35,745][__main__][INFO] - Epoch 1 | loss=0.0796 | val(video_auc)=0.15
+[2026-01-19 13:46:35,838][__main__][INFO] - Saved best checkpoint (score=0.1500) to models/best.pt
+[2026-01-19 13:46:55,065][__main__][INFO] - Epoch 2 | loss=0.0526 | val(video_auc)=0.024999999999999994
+[2026-01-19 13:47:17,046][__main__][INFO] - Epoch 3 | loss=0.0398 | val(video_auc)=0.024999999999999994
+[2026-01-19 13:47:36,426][__main__][INFO] - Epoch 4 | loss=0.0423 | val(video_auc)=0.0
+[2026-01-19 13:47:55,478][__main__][INFO] - Epoch 5 | loss=0.0415 | val(video_auc)=0.0
+[2026-01-19 13:48:14,774][__main__][INFO] - Epoch 6 | loss=0.0340 | val(video_auc)=0.0
+[2026-01-19 13:48:36,478][__main__][INFO] - Epoch 7 | loss=0.0379 | val(video_auc)=0.0
+[2026-01-19 13:48:55,843][__main__][INFO] - Epoch 8 | loss=0.0373 | val(video_auc)=0.0
+[2026-01-19 13:49:14,913][__main__][INFO] - Epoch 9 | loss=0.0307 | val(video_auc)=0.0
+[2026-01-19 13:49:36,849][__main__][INFO] - Epoch 10 | loss=0.0352 | val(video_auc)=0.024999999999999994
+[2026-01-19 13:49:35,827][__main__][INFO] - Wrote /workspaces/project_repo/multirun/2026-01-19/13-29-23/5/metrics.json

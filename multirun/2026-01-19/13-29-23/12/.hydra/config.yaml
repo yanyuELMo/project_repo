@@ -1,0 +1,18 @@
+train:
+  epochs: 10
+  batch_size: 8
+  lr: 0.0003
+  wd: 0.0001
+  k_frames: 8
+  seed: 42
+  num_workers: 2
+  cpu: false
+  log_level: INFO
+eval:
+  agg: max
+  clip_threshold: 0.5
+  video_threshold: 0.4
+  ratio_threshold: 0.6
+model:
+  name: temporal_avg_resnet18
+  pretrained: true
