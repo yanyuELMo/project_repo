@@ -1,0 +1,12 @@
+{"time":"2026-01-19T22:52:43.61446746Z","level":"INFO","msg":"stream: starting","core version":"0.24.0"}
+{"time":"2026-01-19T22:52:43.898300897Z","level":"INFO","msg":"stream: created new stream","id":"jf6smbox"}
+{"time":"2026-01-19T22:52:43.898395101Z","level":"INFO","msg":"handler: started","stream_id":"jf6smbox"}
+{"time":"2026-01-19T22:52:43.89844847Z","level":"INFO","msg":"stream: started","id":"jf6smbox"}
+{"time":"2026-01-19T22:52:43.898592992Z","level":"INFO","msg":"writer: started","stream_id":"jf6smbox"}
+{"time":"2026-01-19T22:52:43.898645678Z","level":"INFO","msg":"sender: started","stream_id":"jf6smbox"}
+{"time":"2026-01-19T22:55:36.427209295Z","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-01-19T22:55:36.665088762Z","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2026-01-19T22:55:36.671007858Z","level":"INFO","msg":"stream: closing","id":"jf6smbox"}
+{"time":"2026-01-19T22:55:36.671033383Z","level":"INFO","msg":"handler: closed","stream_id":"jf6smbox"}
+{"time":"2026-01-19T22:55:36.671092818Z","level":"INFO","msg":"sender: closed","stream_id":"jf6smbox"}
+{"time":"2026-01-19T22:55:36.671099166Z","level":"INFO","msg":"stream: closed","id":"jf6smbox"}

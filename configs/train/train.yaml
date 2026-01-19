@@ -1,19 +1,32 @@
 train:
-  epochs: 5
+  epochs: 10
   batch_size: 8
-  lr: 1e-4
+  lr: 5e-5
   wd: 1e-4
   k_frames: 8
   seed: 42
   num_workers: 2
   cpu: false
   log_level: INFO
+  profile_steps: 0     # >0 to collect per-step timings
+  profile_only: false  # if true, stop after profile_steps
 
 eval:
+  use_video_metrics: false
   agg: max  # max|mean|ratio
   clip_threshold: 0.5
   video_threshold: 0.5
   ratio_threshold: 0.5
+
+wandb:
+  enabled: false
+  project: accident-detection
+  entity:
+  run_name:
+  tags: []
+  mode: online  # online|offline|disabled
+  log_checkpoints: true
+  log_artifacts: true
 
 model:
   name: temporal_avg_resnet18

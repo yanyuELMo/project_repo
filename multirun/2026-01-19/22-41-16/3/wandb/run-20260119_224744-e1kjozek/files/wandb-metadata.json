@@ -1,0 +1,49 @@
+{
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+  "python": "CPython 3.11.14",
+  "startedAt": "2026-01-19T22:47:44.228647Z",
+  "args": [
+    "-m",
+    "train.lr=1e-4,5e-5,2e-5",
+    "train.batch_size=8,12",
+    "train.k_frames=8,12",
+    "train.epochs=6",
+    "train.profile_steps=5",
+    "eval.use_video_metrics=false",
+    "wandb.enabled=true",
+    "wandb.mode=online",
+    "wandb.project=accident-detection"
+  ],
+  "program": "-m src.train",
+  "git": {
+    "remote": "https://github.com/yanyuELMo/project_repo.git",
+    "commit": "bf6b84f143ae16f86b4c30f1295b5c38750fa725"
+  },
+  "email": "s242647@dtu.dk",
+  "root": "/workspaces/project_repo/multirun/2026-01-19/22-41-16/3",
+  "host": "c4388b0fff73",
+  "executable": "/opt/conda/envs/mlops/bin/python",
+  "cpu_count": 11,
+  "cpu_count_logical": 22,
+  "gpu": "NVIDIA GeForce RTX 4060 Ti",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "1081101176832",
+      "used": "132514758656"
+    }
+  },
+  "memory": {
+    "total": "16561897472"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce RTX 4060 Ti",
+      "memoryTotal": "17175674880",
+      "architecture": "Ada",
+      "uuid": "GPU-74c6f690-4c56-2b92-8797-b102274ba43b"
+    }
+  ],
+  "cudaVersion": "12.9",
+  "writerId": "cllp63ftk8hjryghukc4hmqzv95dy3kt"
+}

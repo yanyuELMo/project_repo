@@ -1,0 +1,21 @@
+2026-01-19 23:00:54,108 INFO    MainThread:1500 [wandb_init.py:setup_run_log_directory():717] Logging user logs to /workspaces/project_repo/multirun/2026-01-19/22-41-16/8/wandb/run-20260119_230054-uj9tw7ja/logs/debug.log
+2026-01-19 23:00:54,108 INFO    MainThread:1500 [wandb_init.py:setup_run_log_directory():718] Logging internal logs to /workspaces/project_repo/multirun/2026-01-19/22-41-16/8/wandb/run-20260119_230054-uj9tw7ja/logs/debug-internal.log
+2026-01-19 23:00:54,108 INFO    MainThread:1500 [wandb_init.py:init():844] calling init triggers
+2026-01-19 23:00:54,108 INFO    MainThread:1500 [wandb_init.py:init():849] wandb.init called with sweep_config: {}
+config: {'train': {'epochs': 6, 'batch_size': 8, 'lr': 2e-05, 'wd': 0.0001, 'k_frames': 8, 'seed': 42, 'num_workers': 2, 'cpu': False, 'log_level': 'INFO', 'profile_steps': 5, 'profile_only': False}, 'eval': {'use_video_metrics': False, 'agg': 'max', 'clip_threshold': 0.5, 'video_threshold': 0.5, 'ratio_threshold': 0.5}, 'wandb': {'enabled': True, 'project': 'accident-detection', 'entity': None, 'run_name': None, 'tags': [], 'mode': 'online', 'log_checkpoints': True, 'log_artifacts': True}, 'model': {'name': 'temporal_avg_resnet18', 'pretrained': True}, '_wandb': {}}
+2026-01-19 23:00:54,108 INFO    MainThread:1500 [wandb_init.py:init():892] starting backend
+2026-01-19 23:00:54,108 INFO    MainThread:1500 [wandb_init.py:init():895] sending inform_init request
+2026-01-19 23:00:54,109 INFO    MainThread:1500 [wandb_init.py:init():903] backend started and connected
+2026-01-19 23:00:54,112 INFO    MainThread:1500 [wandb_init.py:init():973] updated telemetry
+2026-01-19 23:00:54,118 INFO    MainThread:1500 [wandb_init.py:init():997] communicating run to backend with 90.0 second timeout
+2026-01-19 23:00:54,720 INFO    MainThread:1500 [wandb_init.py:init():1044] starting run threads in backend
+2026-01-19 23:00:54,776 INFO    MainThread:1500 [wandb_run.py:_console_start():2529] atexit reg
+2026-01-19 23:00:54,776 INFO    MainThread:1500 [wandb_run.py:_redirect():2377] redirect: wrap_raw
+2026-01-19 23:00:54,776 INFO    MainThread:1500 [wandb_run.py:_redirect():2446] Wrapping output streams.
+2026-01-19 23:00:54,776 INFO    MainThread:1500 [wandb_run.py:_redirect():2469] Redirects installed.
+2026-01-19 23:00:54,778 INFO    MainThread:1500 [wandb_init.py:init():1084] run started, returning control to user process
+2026-01-19 23:03:25,519 INFO    MainThread:1500 [wandb_run.py:_finish():2295] finishing run s242647-technical-university-of-denmark/accident-detection/uj9tw7ja
+2026-01-19 23:03:25,520 INFO    MainThread:1500 [wandb_run.py:_atexit_cleanup():2494] got exitcode: 0
+2026-01-19 23:03:25,520 INFO    MainThread:1500 [wandb_run.py:_restore():2476] restore
+2026-01-19 23:03:25,520 INFO    MainThread:1500 [wandb_run.py:_restore():2482] restore done
+2026-01-19 23:03:27,706 INFO    MainThread:1500 [wandb_run.py:_footer_sync_info():3870] logging synced files

@@ -1,0 +1,13 @@
+[2026-01-19 23:03:27,773][__main__][INFO] - Device: cuda
+[2026-01-19 23:03:27,911][__main__][INFO] - pos_weight = 0.0706 (neg=49, pos=694)
+[2026-01-19 23:03:28,953][__main__][INFO] - Initialized wandb run: 9
+[2026-01-19 23:03:53,935][__main__][INFO] - Epoch 1 | loss=0.0841 | val clip_auc=0.48168498168498164 clip_f1=0.286 video_auc=None
+[2026-01-19 23:03:54,005][__main__][INFO] - Saved best checkpoint (score=0.4817) to /workspaces/project_repo/artifacts/checkpoints/multirun/2026-01-19/22-41-16/9/best.pt
+[2026-01-19 23:04:21,883][__main__][INFO] - Epoch 2 | loss=0.0583 | val clip_auc=0.32967032967032966 clip_f1=0.364 video_auc=None
+[2026-01-19 23:04:48,453][__main__][INFO] - Epoch 3 | loss=0.0514 | val clip_auc=0.11904761904761903 clip_f1=0.479 video_auc=None
+[2026-01-19 23:05:14,886][__main__][INFO] - Epoch 4 | loss=0.0434 | val clip_auc=0.13186813186813184 clip_f1=0.457 video_auc=None
+[2026-01-19 23:05:41,597][__main__][INFO] - Epoch 5 | loss=0.0390 | val clip_auc=0.05494505494505494 clip_f1=0.590 video_auc=None
+[2026-01-19 23:06:07,509][__main__][INFO] - Epoch 6 | loss=0.0348 | val clip_auc=0.03479853479853479 clip_f1=0.642 video_auc=None
+[2026-01-19 23:06:09,393][__main__][INFO] - Wrote /workspaces/project_repo/artifacts/metrics/multirun/2026-01-19/22-41-16/9/metrics.json
+[2026-01-19 23:06:09,394][__main__][INFO] - Wrote /workspaces/project_repo/artifacts/metrics/multirun/2026-01-19/22-41-16/9/profile.json
+[2026-01-19 23:06:09,394][__main__][INFO] - Wrote /workspaces/project_repo/multirun/2026-01-19/22-41-16/9/metrics.json

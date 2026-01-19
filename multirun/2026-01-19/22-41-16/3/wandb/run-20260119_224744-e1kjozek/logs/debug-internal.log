@@ -1,0 +1,12 @@
+{"time":"2026-01-19T22:47:44.231323491Z","level":"INFO","msg":"stream: starting","core version":"0.24.0"}
+{"time":"2026-01-19T22:47:44.508457335Z","level":"INFO","msg":"stream: created new stream","id":"e1kjozek"}
+{"time":"2026-01-19T22:47:44.508519934Z","level":"INFO","msg":"handler: started","stream_id":"e1kjozek"}
+{"time":"2026-01-19T22:47:44.508895533Z","level":"INFO","msg":"stream: started","id":"e1kjozek"}
+{"time":"2026-01-19T22:47:44.509204299Z","level":"INFO","msg":"writer: started","stream_id":"e1kjozek"}
+{"time":"2026-01-19T22:47:44.509251768Z","level":"INFO","msg":"sender: started","stream_id":"e1kjozek"}
+{"time":"2026-01-19T22:50:20.274633319Z","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-01-19T22:50:20.618365476Z","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2026-01-19T22:50:20.622596347Z","level":"INFO","msg":"stream: closing","id":"e1kjozek"}
+{"time":"2026-01-19T22:50:20.622612315Z","level":"INFO","msg":"handler: closed","stream_id":"e1kjozek"}
+{"time":"2026-01-19T22:50:20.622669597Z","level":"INFO","msg":"sender: closed","stream_id":"e1kjozek"}
+{"time":"2026-01-19T22:50:20.622720355Z","level":"INFO","msg":"stream: closed","id":"e1kjozek"}

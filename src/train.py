@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
+import time
 
 import hydra
 import numpy as np
@@ -89,11 +90,12 @@ def evaluate(
     clip_threshold: float,
     video_threshold: float,
     ratio_threshold: float,
+    use_video_metrics: bool = True,
 ) -> dict[str, Any]:
     model.eval()
     y_true, y_prob = [], []
-    video_probs: dict[str, list[float]] = {}
-    video_label: dict[str, int] = {}
+    video_probs: dict[str, list[float]] = {} if use_video_metrics else {}
+    video_label: dict[str, int] = {} if use_video_metrics else {}
 
     for batch in loader:
         x = batch["x"].to(device)
@@ -106,9 +108,10 @@ def evaluate(
         y_true.extend(y)
         y_prob.extend(prob)
 
-        for v, p, yy in zip(vids, prob, y):
-            video_probs.setdefault(v, []).append(float(p))
-            video_label.setdefault(v, int(yy))
+        if use_video_metrics:
+            for v, p, yy in zip(vids, prob, y):
+                video_probs.setdefault(v, []).append(float(p))
+                video_label.setdefault(v, int(yy))
 
     out: dict[str, Any] = {}
     out["clip_acc"] = float(
@@ -122,6 +125,12 @@ def evaluate(
         out["clip_auc"] = float(roc_auc_score(y_true, y_prob))
     except Exception:
         out["clip_auc"] = None
+
+    if not use_video_metrics:
+        out["video_acc"] = None
+        out["video_f1"] = None
+        out["video_auc"] = None
+        return out
 
     v_true, v_prob = [], []
     for v, probs in video_probs.items():
@@ -149,6 +158,49 @@ def evaluate(
         out["video_auc"] = None
 
     return out
+
+
+def _maybe_init_wandb(cfg: DictConfig, reports_dir: Path) -> Optional[Any]:
+    """Initialize wandb run if enabled in config."""
+    wandb_cfg = cfg.get("wandb")
+    if not wandb_cfg or not wandb_cfg.get("enabled", False):
+        return None
+
+    try:
+        import wandb  # type: ignore
+    except ImportError:
+        LOGGER.warning("wandb not installed; skipping wandb logging.")
+        return None
+
+    run = wandb.init(
+        project=wandb_cfg.get("project"),
+        entity=wandb_cfg.get("entity"),
+        name=wandb_cfg.get("run_name") or reports_dir.name,
+        tags=wandb_cfg.get("tags") or None,
+        config=OmegaConf.to_container(cfg, resolve=True),
+        dir=str(reports_dir),
+        mode=wandb_cfg.get("mode"),
+        reinit=True,
+    )
+    LOGGER.info("Initialized wandb run: %s", run.name)
+    return run
+
+
+def _summarize_profile(records: list[dict[str, float]]) -> Optional[dict[str, float]]:
+    if not records:
+        return None
+    load = [r["load_s"] for r in records]
+    step = [r["step_s"] for r in records]
+    total = [r["total_s"] for r in records]
+    return {
+        "samples": float(len(records)),
+        "load_mean_s": float(np.mean(load)),
+        "load_max_s": float(np.max(load)),
+        "step_mean_s": float(np.mean(step)),
+        "step_max_s": float(np.max(step)),
+        "total_mean_s": float(np.mean(total)),
+        "total_max_s": float(np.max(total)),
+    }
 
 
 def train(cfg: DictConfig) -> None:
@@ -230,14 +282,23 @@ def train(cfg: DictConfig) -> None:
     ckpt_dir.mkdir(parents=True, exist_ok=True)
     metrics_dir.mkdir(parents=True, exist_ok=True)
     best_ckpt_path = ckpt_dir / "best.pt"
+    wandb_run = _maybe_init_wandb(cfg, reports_dir)
+    wandb_cfg = cfg.get("wandb") or {}
 
     history: list[dict[str, Any]] = []
+    profile_steps = int(getattr(cfg.train, "profile_steps", 0) or 0)
+    profile_only = bool(getattr(cfg.train, "profile_only", False))
+    profile_records: list[dict[str, float]] = []
 
     for epoch in range(1, cfg.train.epochs + 1):
         model.train()
         losses = []
+        t_load_start = time.perf_counter()
 
-        for batch in tqdm(train_loader, desc=f"Epoch {epoch}/{cfg.train.epochs}"):
+        for step, batch in enumerate(
+            tqdm(train_loader, desc=f"Epoch {epoch}/{cfg.train.epochs}")
+        ):
+            t_after_load = time.perf_counter()
             x = batch["x"].to(device)
             y = batch["y"].to(device)
 
@@ -246,8 +307,23 @@ def train(cfg: DictConfig) -> None:
             loss = criterion(logits, y)
             loss.backward()
             optimizer.step()
+            t_after_step = time.perf_counter()
 
             losses.append(float(loss.item()))
+
+            if profile_steps and step < profile_steps:
+                profile_records.append(
+                    {
+                        "epoch": float(epoch),
+                        "step": float(step),
+                        "load_s": t_after_load - t_load_start,
+                        "step_s": t_after_step - t_after_load,
+                        "total_s": t_after_step - t_load_start,
+                    }
+                )
+            t_load_start = time.perf_counter()
+            if profile_only and profile_steps and step + 1 >= profile_steps:
+                break
 
         train_loss = float(np.mean(losses)) if losses else float("nan")
         val_metrics = evaluate(
@@ -258,24 +334,34 @@ def train(cfg: DictConfig) -> None:
             clip_threshold=cfg.eval.clip_threshold,
             video_threshold=cfg.eval.video_threshold,
             ratio_threshold=cfg.eval.ratio_threshold,
+            use_video_metrics=cfg.eval.use_video_metrics,
         )
 
         row = {"epoch": epoch, "train_loss": train_loss} | val_metrics
         history.append(row)
         LOGGER.info(
-            "Epoch %d | loss=%.4f | val(video_auc)=%s",
+            "Epoch %d | loss=%.4f | val clip_auc=%s clip_f1=%.3f video_auc=%s",
             epoch,
             train_loss,
+            str(val_metrics.get("clip_auc")),
+            val_metrics.get("clip_f1", 0.0),
             str(val_metrics.get("video_auc")),
         )
 
-        score = (
-            val_metrics["video_auc"]
-            if val_metrics["video_auc"] is not None
-            else (val_metrics["clip_auc"] or 0.0)
-        )
-        if score is None:
-            score = 0.0
+        if wandb_run:
+            log_payload = {
+                "epoch": epoch,
+                "train_loss": train_loss,
+                **{f"val/{k}": v for k, v in val_metrics.items() if v is not None},
+            }
+            wandb_run.log(log_payload, step=epoch)
+
+        score_candidates = [
+            val_metrics.get("video_auc") if cfg.eval.use_video_metrics else None,
+            val_metrics.get("clip_auc"),
+            val_metrics.get("clip_f1"),
+        ]
+        score = next((s for s in score_candidates if s is not None), 0.0)
 
         if float(score) > best_score:
             best_score = float(score)
@@ -290,6 +376,16 @@ def train(cfg: DictConfig) -> None:
             LOGGER.info(
                 "Saved best checkpoint (score=%.4f) to %s", best_score, best_ckpt_path
             )
+            if wandb_run and wandb_cfg.get("log_checkpoints", False):
+                import wandb  # type: ignore
+
+                artifact = wandb.Artifact(
+                    name=f"{cfg.model.name}-best",
+                    type="model",
+                    metadata={"best_score": best_score, "epoch": epoch},
+                )
+                artifact.add_file(str(best_ckpt_path))
+                wandb_run.log_artifact(artifact)
 
     if best_ckpt_path.exists():
         ckpt = torch.load(best_ckpt_path, map_location=device)
@@ -303,6 +399,7 @@ def train(cfg: DictConfig) -> None:
         clip_threshold=cfg.eval.clip_threshold,
         video_threshold=cfg.eval.video_threshold,
         ratio_threshold=cfg.eval.ratio_threshold,
+        use_video_metrics=cfg.eval.use_video_metrics,
     )
     out = {
         "best_val_score": best_score,
@@ -310,15 +407,46 @@ def train(cfg: DictConfig) -> None:
         "history": history,
         "config": OmegaConf.to_container(cfg, resolve=True),
     }
+    profile_summary = _summarize_profile(profile_records)
+    if profile_summary:
+        out["profile"] = profile_summary
     metrics_path = metrics_dir / "metrics.json"
     metrics_path.write_text(json.dumps(out, indent=2), encoding="utf-8")
     LOGGER.info("Wrote %s", metrics_path)
+    if profile_summary:
+        profile_path = metrics_dir / "profile.json"
+        profile_path.write_text(json.dumps(profile_summary, indent=2), encoding="utf-8")
+        LOGGER.info("Wrote %s", profile_path)
     # Keep a copy in the Hydra run directory for convenience.
     hydra_metrics_path = reports_dir / "metrics.json"
     if hydra_metrics_path != metrics_path:
         hydra_metrics_path.write_text(
             json.dumps(out, indent=2), encoding="utf-8")
         LOGGER.info("Wrote %s", hydra_metrics_path)
+
+    if wandb_run:
+        wandb_run.summary["best_val_score"] = best_score
+        wandb_payload = {
+            f"test/{k}": v for k, v in test_metrics.items() if v is not None
+        }
+        if profile_summary:
+            wandb_payload.update({f"profile/{k}": v for k, v in profile_summary.items()})
+        wandb_run.log(wandb_payload, step=cfg.train.epochs + 1)
+        if wandb_cfg.get("log_artifacts", False):
+            import wandb  # type: ignore
+
+            metrics_artifact = wandb.Artifact(
+                name=f"metrics-{reports_dir.name}",
+                type="metrics",
+            )
+            metrics_artifact.add_file(str(metrics_path))
+            if hydra_metrics_path.exists() and hydra_metrics_path != metrics_path:
+                metrics_artifact.add_file(str(hydra_metrics_path))
+            profile_path = metrics_dir / "profile.json"
+            if profile_path.exists():
+                metrics_artifact.add_file(str(profile_path))
+            wandb_run.log_artifact(metrics_artifact)
+        wandb_run.finish()
 
 
 @hydra.main(config_path="../configs/train", config_name="train", version_base=None)

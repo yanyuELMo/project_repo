@@ -1,0 +1,10 @@
+- eval.use_video_metrics=False
+- train.batch_size=8
+- train.epochs=6
+- train.k_frames=12
+- train.lr=0.0001
+- train.profile_only=False
+- train.profile_steps=5
+- wandb.enabled=True
+- wandb.mode=online
+- wandb.project=accident-detection

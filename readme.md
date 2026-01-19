@@ -9,7 +9,20 @@ Data source:https://github.com/pavana27/TU-DAT
 ## Development
 
 - Formatting: `isort src tests` then `black src tests` (config in `pyproject.toml`).
-- CLI (Typer wrapper): `python -m src.cli preprocess [hydra overrides]` or `python -m src.cli train [overrides]`.
+- CLI (Typer wrapper):
+  - Preprocess: `python -m src.cli preprocess [hydra overrides]`
+  - Train: `python -m src.cli train [hydra overrides]`
+  - Report: `python -m src.cli report --mode html|check`
+  - Format: `python -m src.cli format`
+- Profiling: `python -m src.cli train train.profile_steps=10 train.profile_only=true` (writes `profile.json` under `artifacts/metrics/...`)
+
+## Experiment tracking (Weights & Biases)
+
+- Default: disabled (`wandb.enabled=false` in `configs/train/train.yaml`).
+- Enable with overrides, e.g. `python -m src.cli train wandb.enabled=true wandb.project=your_project`.
+- Logs clip-level metrics per epoch; can upload best checkpoint/metrics as artifacts when `log_checkpoints`/`log_artifacts` are true.
+- Supports `mode=offline` for environments without network access.
+- Sweep (W&B): config now under `outputs/sweeps/wandb_clip.yaml`; run with `WANDB_DIR=outputs/wandb wandb sweep outputs/sweeps/wandb_clip.yaml` then `WANDB_DIR=outputs/wandb wandb agent <entity>/<project>/<sweep_id>` (set `WANDB_API_KEY` first).
 
 ## Data versioning (DVC)
 

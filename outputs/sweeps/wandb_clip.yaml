@@ -1,0 +1,35 @@
+command:
+  - python
+  - -m
+  - src.cli
+  - train
+  - ${args}
+method: random
+metric:
+  name: val/clip_auc
+  goal: maximize
+parameters:
+  train.lr:
+    values: [1e-4, 5e-5, 2e-5]
+  train.batch_size:
+    values: [8, 12]
+  train.k_frames:
+    values: [8, 12]
+  train.epochs:
+    value: 6
+  train.profile_steps:
+    value: 5
+  train.profile_only:
+    value: false
+  eval.use_video_metrics:
+    value: false
+  wandb.enabled:
+    value: true
+  wandb.mode:
+    value: online
+  wandb.project:
+    value: accident-detection
+early_terminate:
+  type: hyperband
+  min_iter: 2
+  eta: 3
