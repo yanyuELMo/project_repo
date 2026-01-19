@@ -1,0 +1,30 @@
+train:
+  epochs: 6
+  batch_size: 8
+  lr: 5.0e-05
+  wd: 0.0001
+  k_frames: 12
+  seed: 42
+  num_workers: 2
+  cpu: false
+  log_level: INFO
+  profile_steps: 5
+  profile_only: false
+eval:
+  use_video_metrics: false
+  agg: max
+  clip_threshold: 0.5
+  video_threshold: 0.5
+  ratio_threshold: 0.5
+wandb:
+  enabled: true
+  project: accident-detection
+  entity: null
+  run_name: null
+  tags: []
+  mode: online
+  log_checkpoints: true
+  log_artifacts: true
+model:
+  name: temporal_avg_resnet18
+  pretrained: true

@@ -1,0 +1,12 @@
+{"time":"2026-01-19T22:45:41.384366995Z","level":"INFO","msg":"stream: starting","core version":"0.24.0"}
+{"time":"2026-01-19T22:45:41.669302731Z","level":"INFO","msg":"stream: created new stream","id":"wxklafx2"}
+{"time":"2026-01-19T22:45:41.669401204Z","level":"INFO","msg":"handler: started","stream_id":"wxklafx2"}
+{"time":"2026-01-19T22:45:41.669586594Z","level":"INFO","msg":"stream: started","id":"wxklafx2"}
+{"time":"2026-01-19T22:45:41.669643842Z","level":"INFO","msg":"writer: started","stream_id":"wxklafx2"}
+{"time":"2026-01-19T22:45:41.669702601Z","level":"INFO","msg":"sender: started","stream_id":"wxklafx2"}
+{"time":"2026-01-19T22:47:43.493042984Z","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-01-19T22:47:43.700692254Z","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2026-01-19T22:47:43.704420481Z","level":"INFO","msg":"stream: closing","id":"wxklafx2"}
+{"time":"2026-01-19T22:47:43.70444869Z","level":"INFO","msg":"handler: closed","stream_id":"wxklafx2"}
+{"time":"2026-01-19T22:47:43.704512739Z","level":"INFO","msg":"sender: closed","stream_id":"wxklafx2"}
+{"time":"2026-01-19T22:47:43.704516861Z","level":"INFO","msg":"stream: closed","id":"wxklafx2"}

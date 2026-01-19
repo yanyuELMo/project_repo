@@ -1,0 +1,118 @@
+{
+  "best_val_score": 0.32051282051282054,
+  "test": {
+    "clip_acc": 0.65,
+    "clip_f1": 0.75,
+    "clip_auc": 0.8114285714285714,
+    "video_acc": null,
+    "video_f1": null,
+    "video_auc": null
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.07784376509727971,
+      "clip_acc": 0.4909090909090909,
+      "clip_f1": 0.5882352941176471,
+      "clip_auc": 0.32051282051282054,
+      "video_acc": null,
+      "video_f1": null,
+      "video_auc": null
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.05240279225812804,
+      "clip_acc": 0.43636363636363634,
+      "clip_f1": 0.6075949367088608,
+      "clip_auc": 0.25457875457875456,
+      "video_acc": null,
+      "video_f1": null,
+      "video_auc": null
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.04236711735927289,
+      "clip_acc": 0.38181818181818183,
+      "clip_f1": 0.5277777777777778,
+      "clip_auc": 0.13186813186813184,
+      "video_acc": null,
+      "video_f1": null,
+      "video_auc": null
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.03616896844018371,
+      "clip_acc": 0.509090909090909,
+      "clip_f1": 0.6746987951807228,
+      "clip_auc": 0.0641025641025641,
+      "video_acc": null,
+      "video_f1": null,
+      "video_auc": null
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.03172504110261798,
+      "clip_acc": 0.41818181818181815,
+      "clip_f1": 0.5789473684210527,
+      "clip_auc": 0.13919413919413917,
+      "video_acc": null,
+      "video_f1": null,
+      "video_auc": null
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.03056518977598077,
+      "clip_acc": 0.4727272727272727,
+      "clip_f1": 0.6419753086419753,
+      "clip_auc": 0.03846153846153845,
+      "video_acc": null,
+      "video_f1": null,
+      "video_auc": null
+    }
+  ],
+  "config": {
+    "train": {
+      "epochs": 6,
+      "batch_size": 12,
+      "lr": 5e-05,
+      "wd": 0.0001,
+      "k_frames": 8,
+      "seed": 42,
+      "num_workers": 2,
+      "cpu": false,
+      "log_level": "INFO",
+      "profile_steps": 5,
+      "profile_only": false
+    },
+    "eval": {
+      "use_video_metrics": false,
+      "agg": "max",
+      "clip_threshold": 0.5,
+      "video_threshold": 0.5,
+      "ratio_threshold": 0.5
+    },
+    "wandb": {
+      "enabled": true,
+      "project": "accident-detection",
+      "entity": null,
+      "run_name": null,
+      "tags": [],
+      "mode": "online",
+      "log_checkpoints": true,
+      "log_artifacts": true
+    },
+    "model": {
+      "name": "temporal_avg_resnet18",
+      "pretrained": true
+    }
+  },
+  "profile": {
+    "samples": 30.0,
+    "load_mean_s": 0.3117053092666841,
+    "load_max_s": 0.8310537770000792,
+    "step_mean_s": 0.027315933166657185,
+    "step_max_s": 0.06213494899998295,
+    "total_mean_s": 0.3390212424333413,
+    "total_max_s": 0.8697982640001101
+  }
+}

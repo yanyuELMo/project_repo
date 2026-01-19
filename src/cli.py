@@ -20,7 +20,12 @@ def _run(cmd: list[str]) -> None:
 
 def _run_module(module: str, overrides: List[str]) -> None:
     """Invoke a Python module with optional Hydra overrides."""
-    _run([sys.executable, "-m", module, *overrides])
+    cmd = [sys.executable, "-m", module]
+    if overrides and overrides[0] in {"m", "multirun"}:
+        cmd.append("-m")
+        overrides = overrides[1:]
+    cmd.extend(overrides)
+    _run(cmd)
 
 
 @app.command()
