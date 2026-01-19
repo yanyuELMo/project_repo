@@ -1,0 +1,20 @@
+{
+  "n_videos": 126,
+  "n_clips": 838,
+  "by_split": {
+    "train": 743,
+    "val": 55,
+    "test": 40
+  },
+  "by_label": {
+    "0": 67,
+    "1": 771
+  },
+  "by_subset": {
+    "beanNG": 61,
+    "challenging": 29,
+    "negative": 67,
+    "positive": 189,
+    "rash": 492
+  }
+}
