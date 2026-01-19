@@ -9,3 +9,10 @@ Data source:https://github.com/pavana27/TU-DAT
 ## Development
 
 - Formatting: `isort src tests` then `black src tests` (config in `pyproject.toml`).
+
+## Data versioning (DVC)
+
+- Tracked with DVC: `data/raw` and `data/processed/clips`.
+- Pull data: `dvc pull`
+- Push data: `dvc push`
+- Default remote is local at `/home/vscode/dvc_remote` (adjust with `dvc remote add`/`dvc remote modify` for S3/GCS).
