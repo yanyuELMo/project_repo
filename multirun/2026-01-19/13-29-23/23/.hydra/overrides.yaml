@@ -1,5 +1,0 @@
-- train.epochs=10
-- train.lr=0.0003
-- eval.agg=ratio
-- eval.ratio_threshold=0.7
-- eval.video_threshold=0.5

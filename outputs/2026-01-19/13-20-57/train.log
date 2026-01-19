@@ -1,9 +1,0 @@
-[2026-01-19 13:20:57,195][__main__][INFO] - Device: cuda
-[2026-01-19 13:20:58,629][__main__][INFO] - pos_weight = 0.0706 (neg=49, pos=694)
-[2026-01-19 13:21:22,947][__main__][INFO] - Epoch 1 | loss=0.0778 | val(video_auc)=0.525
-[2026-01-19 13:21:23,032][__main__][INFO] - Saved best checkpoint (score=0.5250) to models/best.pt
-[2026-01-19 13:21:42,152][__main__][INFO] - Epoch 2 | loss=0.0517 | val(video_auc)=0.4
-[2026-01-19 13:22:01,193][__main__][INFO] - Epoch 3 | loss=0.0467 | val(video_auc)=0.45
-[2026-01-19 13:22:20,155][__main__][INFO] - Epoch 4 | loss=0.0383 | val(video_auc)=0.11249999999999998
-[2026-01-19 13:22:41,951][__main__][INFO] - Epoch 5 | loss=0.0336 | val(video_auc)=0.12499999999999997
-[2026-01-19 13:22:43,625][__main__][INFO] - Wrote reports/metrics.json
