@@ -9,6 +9,7 @@ Data source:https://github.com/pavana27/TU-DAT
 ## Development
 
 - Formatting: `isort src tests` then `black src tests` (config in `pyproject.toml`).
+- CLI (Typer wrapper): `python -m src.cli preprocess [hydra overrides]` or `python -m src.cli train [overrides]`.
 
 ## Data versioning (DVC)
 
