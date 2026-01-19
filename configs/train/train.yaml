@@ -8,6 +8,8 @@ train:
   num_workers: 2
   cpu: false
   log_level: INFO
+  profile_steps: 0     # >0 to collect per-step timings
+  profile_only: false  # if true, stop after profile_steps
 
 eval:
   use_video_metrics: false

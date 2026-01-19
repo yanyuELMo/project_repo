@@ -25,30 +25,38 @@ def _run_module(module: str, overrides: List[str]) -> None:
 
 @app.command()
 def preprocess(
+    ctx: typer.Context,
     overrides: Optional[List[str]] = typer.Argument(  # type: ignore[call-arg]
         None,
         help="Hydra overrides, e.g. data.clip_seconds=6 data.force=true",
-    )
+    ),
 ) -> None:
     """
     Run data preprocessing (defaults to configs/data/data.yaml).
     Example: python -m src.cli preprocess data.force=true
     """
-    _run_module("src.preprocess", overrides or [])
+    base = [(o or "").lstrip("-") for o in overrides or []]
+    extra = [a.lstrip("-") for a in ctx.args]
+    merged = base + extra
+    _run_module("src.preprocess", merged)
 
 
-@app.command()
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def train(
+    ctx: typer.Context,
     overrides: Optional[List[str]] = typer.Argument(  # type: ignore[call-arg]
         None,
         help="Hydra overrides, e.g. train.epochs=10 train.batch_size=16",
-    )
+    ),
 ) -> None:
     """
     Run training (defaults to configs/train/train.yaml).
     Example: python -m src.cli train train.lr=5e-5
     """
-    _run_module("src.train", overrides or [])
+    base = [(o or "").lstrip("-") for o in overrides or []]
+    extra = [a.lstrip("-") for a in ctx.args]
+    merged = base + extra
+    _run_module("src.train", merged)
 
 
 @app.command()

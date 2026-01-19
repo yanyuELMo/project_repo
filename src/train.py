@@ -4,6 +4,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Any, Optional
+import time
 
 import hydra
 import numpy as np
@@ -185,6 +186,23 @@ def _maybe_init_wandb(cfg: DictConfig, reports_dir: Path) -> Optional[Any]:
     return run
 
 
+def _summarize_profile(records: list[dict[str, float]]) -> Optional[dict[str, float]]:
+    if not records:
+        return None
+    load = [r["load_s"] for r in records]
+    step = [r["step_s"] for r in records]
+    total = [r["total_s"] for r in records]
+    return {
+        "samples": float(len(records)),
+        "load_mean_s": float(np.mean(load)),
+        "load_max_s": float(np.max(load)),
+        "step_mean_s": float(np.mean(step)),
+        "step_max_s": float(np.max(step)),
+        "total_mean_s": float(np.mean(total)),
+        "total_max_s": float(np.max(total)),
+    }
+
+
 def train(cfg: DictConfig) -> None:
     if not CLIPS_CSV.exists():
         raise FileNotFoundError(
@@ -268,12 +286,19 @@ def train(cfg: DictConfig) -> None:
     wandb_cfg = cfg.get("wandb") or {}
 
     history: list[dict[str, Any]] = []
+    profile_steps = int(getattr(cfg.train, "profile_steps", 0) or 0)
+    profile_only = bool(getattr(cfg.train, "profile_only", False))
+    profile_records: list[dict[str, float]] = []
 
     for epoch in range(1, cfg.train.epochs + 1):
         model.train()
         losses = []
+        t_load_start = time.perf_counter()
 
-        for batch in tqdm(train_loader, desc=f"Epoch {epoch}/{cfg.train.epochs}"):
+        for step, batch in enumerate(
+            tqdm(train_loader, desc=f"Epoch {epoch}/{cfg.train.epochs}")
+        ):
+            t_after_load = time.perf_counter()
             x = batch["x"].to(device)
             y = batch["y"].to(device)
 
@@ -282,8 +307,23 @@ def train(cfg: DictConfig) -> None:
             loss = criterion(logits, y)
             loss.backward()
             optimizer.step()
+            t_after_step = time.perf_counter()
 
             losses.append(float(loss.item()))
+
+            if profile_steps and step < profile_steps:
+                profile_records.append(
+                    {
+                        "epoch": float(epoch),
+                        "step": float(step),
+                        "load_s": t_after_load - t_load_start,
+                        "step_s": t_after_step - t_after_load,
+                        "total_s": t_after_step - t_load_start,
+                    }
+                )
+            t_load_start = time.perf_counter()
+            if profile_only and profile_steps and step + 1 >= profile_steps:
+                break
 
         train_loss = float(np.mean(losses)) if losses else float("nan")
         val_metrics = evaluate(
@@ -367,9 +407,16 @@ def train(cfg: DictConfig) -> None:
         "history": history,
         "config": OmegaConf.to_container(cfg, resolve=True),
     }
+    profile_summary = _summarize_profile(profile_records)
+    if profile_summary:
+        out["profile"] = profile_summary
     metrics_path = metrics_dir / "metrics.json"
     metrics_path.write_text(json.dumps(out, indent=2), encoding="utf-8")
     LOGGER.info("Wrote %s", metrics_path)
+    if profile_summary:
+        profile_path = metrics_dir / "profile.json"
+        profile_path.write_text(json.dumps(profile_summary, indent=2), encoding="utf-8")
+        LOGGER.info("Wrote %s", profile_path)
     # Keep a copy in the Hydra run directory for convenience.
     hydra_metrics_path = reports_dir / "metrics.json"
     if hydra_metrics_path != metrics_path:
@@ -379,10 +426,12 @@ def train(cfg: DictConfig) -> None:
 
     if wandb_run:
         wandb_run.summary["best_val_score"] = best_score
-        wandb_run.log(
-            {f"test/{k}": v for k, v in test_metrics.items() if v is not None},
-            step=cfg.train.epochs + 1,
-        )
+        wandb_payload = {
+            f"test/{k}": v for k, v in test_metrics.items() if v is not None
+        }
+        if profile_summary:
+            wandb_payload.update({f"profile/{k}": v for k, v in profile_summary.items()})
+        wandb_run.log(wandb_payload, step=cfg.train.epochs + 1)
         if wandb_cfg.get("log_artifacts", False):
             import wandb  # type: ignore
 
@@ -393,6 +442,9 @@ def train(cfg: DictConfig) -> None:
             metrics_artifact.add_file(str(metrics_path))
             if hydra_metrics_path.exists() and hydra_metrics_path != metrics_path:
                 metrics_artifact.add_file(str(hydra_metrics_path))
+            profile_path = metrics_dir / "profile.json"
+            if profile_path.exists():
+                metrics_artifact.add_file(str(profile_path))
             wandb_run.log_artifact(metrics_artifact)
         wandb_run.finish()
 

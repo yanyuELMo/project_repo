@@ -1,0 +1,22 @@
+wandb_version: 1
+
+eval.use_video_metrics:
+  value: false
+train.batch_size:
+  value: 12
+train.epochs:
+  value: 6
+train.k_frames:
+  value: 8
+train.lr:
+  value: 2.0e-05
+train.profile_only:
+  value: false
+train.profile_steps:
+  value: 5
+wandb.enabled:
+  value: true
+wandb.mode:
+  value: online
+wandb.project:
+  value: accident-detection
