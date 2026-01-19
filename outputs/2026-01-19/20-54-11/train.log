@@ -1,0 +1,8 @@
+[2026-01-19 20:54:11,401][__main__][INFO] - Device: cuda
+[2026-01-19 20:54:11,815][__main__][INFO] - pos_weight = 0.0706 (neg=49, pos=694)
+[2026-01-19 20:54:12,738][__main__][INFO] - Initialized wandb run: 20-54-11
+[2026-01-19 20:54:32,784][__main__][INFO] - Epoch 1 | loss=0.0771 | val clip_auc=0.3956043956043956 clip_f1=0.208 video_auc=None
+[2026-01-19 20:54:32,842][__main__][INFO] - Saved best checkpoint (score=0.3956) to /workspaces/project_repo/artifacts/checkpoints/outputs/2026-01-19/20-54-11/best.pt
+[2026-01-19 20:54:54,231][__main__][INFO] - Epoch 2 | loss=0.0500 | val clip_auc=0.10439560439560439 clip_f1=0.579 video_auc=None
+[2026-01-19 20:54:55,862][__main__][INFO] - Wrote /workspaces/project_repo/artifacts/metrics/outputs/2026-01-19/20-54-11/metrics.json
+[2026-01-19 20:54:55,863][__main__][INFO] - Wrote /workspaces/project_repo/outputs/2026-01-19/20-54-11/metrics.json

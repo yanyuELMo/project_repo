@@ -1,0 +1,3 @@
+- train.epochs=2
+- wandb.enabled=true
+- wandb.mode=offline
