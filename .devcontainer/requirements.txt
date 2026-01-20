@@ -13,6 +13,7 @@ hydra-core==1.3.2
 omegaconf==2.3.0
 wandb
 pytest
+pytest-cov
 ruff
 black
 isort
