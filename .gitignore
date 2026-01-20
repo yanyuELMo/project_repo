@@ -1,3 +1,8 @@
 /data/raw/
 /data/processed/clips/
 /artifacts/checkpoints/
+/outputs/
+/multirun/
+/.coverage
+__pycache__/
+**/__pycache__/
