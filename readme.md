@@ -11,6 +11,7 @@ Data source:https://github.com/pavana27/TU-DAT
 - Formatting: `isort src tests` then `black src tests` (config in `pyproject.toml`).
 - Pre-commit: `pre-commit install` once, then `pre-commit run --all-files` to lint/format before committing.
 - CI: GitHub Actions workflow `.github/workflows/ci.yml` runs pre-commit (lint/format) and `pytest -q` on push/PR with a Python matrix (3.10, 3.11; Ubuntu runners) and pip cache.
+- Data change workflow: `.github/workflows/data-change.yml` triggers on DVC metadata changes (`dvc.yaml`, `dvc.lock`, `*.dvc`, `.dvc/**`) and runs tests.
 - CLI (Typer wrapper):
   - Preprocess: `python -m src.cli preprocess [hydra overrides]`
   - Train: `python -m src.cli train [hydra overrides]`

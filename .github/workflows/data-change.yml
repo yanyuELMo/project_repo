@@ -1,0 +1,55 @@
+name: Data Change Checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dvc.yaml"
+      - "dvc.lock"
+      - "**/*.dvc"
+      - ".dvc/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "dvc.yaml"
+      - "dvc.lock"
+      - "**/*.dvc"
+      - ".dvc/**"
+
+jobs:
+  test-on-data-change:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py3.11-pip-${{ hashFiles('.devcontainer/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-py3.11-pip-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libsm6 libxext6 libglib2.0-0
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --no-cache-dir -r .devcontainer/requirements.txt
+          python -m pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Run tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python -m pytest -q
