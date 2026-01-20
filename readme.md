@@ -9,6 +9,7 @@ Data source:https://github.com/pavana27/TU-DAT
 ## Development
 
 - Formatting: `isort src tests` then `black src tests` (config in `pyproject.toml`).
+- Pre-commit: `pre-commit install` once, then `pre-commit run --all-files` to lint/format before committing.
 - CLI (Typer wrapper):
   - Preprocess: `python -m src.cli preprocess [hydra overrides]`
   - Train: `python -m src.cli train [hydra overrides]`

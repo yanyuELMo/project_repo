@@ -1,7 +1,6 @@
 import json
-from pathlib import Path
 
-from src.data import preprocess, ClipRecord
+from src.data import ClipRecord, preprocess
 
 
 def test_preprocess_writes_manifests(tmp_path, monkeypatch):

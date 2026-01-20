@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from pathlib import Path
 from typing import Any, Optional
-import time
 
 import hydra
 import numpy as np
@@ -118,8 +118,7 @@ def evaluate(
         accuracy_score(y_true, [int(p >= clip_threshold) for p in y_prob])
     )
     out["clip_f1"] = float(
-        f1_score(y_true, [int(p >= clip_threshold)
-                 for p in y_prob], zero_division=0)
+        f1_score(y_true, [int(p >= clip_threshold) for p in y_prob], zero_division=0)
     )
     try:
         out["clip_auc"] = float(roc_auc_score(y_true, y_prob))
@@ -149,8 +148,7 @@ def evaluate(
         accuracy_score(v_true, [int(p >= video_threshold) for p in v_prob])
     )
     out["video_f1"] = float(
-        f1_score(v_true, [int(p >= video_threshold)
-                 for p in v_prob], zero_division=0)
+        f1_score(v_true, [int(p >= video_threshold) for p in v_prob], zero_division=0)
     )
     try:
         out["video_auc"] = float(roc_auc_score(v_true, v_prob))
@@ -205,8 +203,7 @@ def _summarize_profile(records: list[dict[str, float]]) -> Optional[dict[str, fl
 
 def train(cfg: DictConfig) -> None:
     if not CLIPS_CSV.exists():
-        raise FileNotFoundError(
-            f"Missing {CLIPS_CSV}. Run preprocessing first.")
+        raise FileNotFoundError(f"Missing {CLIPS_CSV}. Run preprocessing first.")
 
     df = pd.read_csv(CLIPS_CSV)
     train_df = df[df["split"] == "train"].copy()
@@ -250,8 +247,7 @@ def train(cfg: DictConfig) -> None:
         pin_memory=True,
     )
 
-    model = build_model(
-        cfg.model.name, pretrained=cfg.model.pretrained).to(device)
+    model = build_model(cfg.model.name, pretrained=cfg.model.pretrained).to(device)
 
     n_pos = int((train_df["label"] == 1).sum())
     n_neg = int((train_df["label"] == 0).sum())
@@ -261,8 +257,7 @@ def train(cfg: DictConfig) -> None:
             [n_neg / max(n_pos, 1)], dtype=torch.float32, device=device
         )
         LOGGER.info(
-            "pos_weight = %.4f (neg=%d, pos=%d)", float(
-                pos_weight.item()), n_neg, n_pos
+            "pos_weight = %.4f (neg=%d, pos=%d)", float(pos_weight.item()), n_neg, n_pos
         )
 
     criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
@@ -420,8 +415,7 @@ def train(cfg: DictConfig) -> None:
     # Keep a copy in the Hydra run directory for convenience.
     hydra_metrics_path = reports_dir / "metrics.json"
     if hydra_metrics_path != metrics_path:
-        hydra_metrics_path.write_text(
-            json.dumps(out, indent=2), encoding="utf-8")
+        hydra_metrics_path.write_text(json.dumps(out, indent=2), encoding="utf-8")
         LOGGER.info("Wrote %s", hydra_metrics_path)
 
     if wandb_run:
@@ -430,7 +424,9 @@ def train(cfg: DictConfig) -> None:
             f"test/{k}": v for k, v in test_metrics.items() if v is not None
         }
         if profile_summary:
-            wandb_payload.update({f"profile/{k}": v for k, v in profile_summary.items()})
+            wandb_payload.update(
+                {f"profile/{k}": v for k, v in profile_summary.items()}
+            )
         wandb_run.log(wandb_payload, step=cfg.train.epochs + 1)
         if wandb_cfg.get("log_artifacts", False):
             import wandb  # type: ignore

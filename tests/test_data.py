@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import torch
 
-from src.data import VideoRecord, split_videos
 import src.train as train
+from src.data import VideoRecord, split_videos
 
 
 def test_split_videos_covers_all_and_keeps_labels():
@@ -82,8 +82,11 @@ def test_discover_videos_basic(tmp_path):
 
     # Patch PROJECT_ROOT so discover_videos treats tmp_path as project root
     from src import data as data_mod
+
     data_mod.PROJECT_ROOT = tmp_path
-    videos = data_mod.discover_videos(root, include_challenging=False, include_rash=False, include_beamng=False)
+    videos = data_mod.discover_videos(
+        root, include_challenging=False, include_rash=False, include_beamng=False
+    )
     labels = {v.video_id: v.label for v in videos}
     subsets = {v.video_id: v.subset for v in videos}
 

@@ -157,8 +157,8 @@ def split_videos(
         n_train = min(n_train, n)
         n_val = min(n_val, n - n_train)
         train_ids = idx[:n_train]
-        val_ids = idx[n_train: n_train + n_val]
-        test_ids = idx[n_train + n_val:]
+        val_ids = idx[n_train : n_train + n_val]
+        test_ids = idx[n_train + n_val :]
 
         for i in train_ids:
             mapping[group[i].video_id] = "train"
@@ -228,8 +228,7 @@ def _read_clip_cv2(
     cap.release()
 
     if len(frames) == 0:
-        raise RuntimeError(
-            f"Got 0 frames from {video_path} at start={start_sec}")
+        raise RuntimeError(f"Got 0 frames from {video_path} at start={start_sec}")
 
     while len(frames) < n_frames:
         frames.append(frames[-1].copy())
@@ -244,8 +243,7 @@ def _safe_duration_seconds(video_path: Path) -> float:
     try:
         import cv2
     except ImportError as e:
-        raise ImportError(
-            "opencv-python is required. pip install opencv-python") from e
+        raise ImportError("opencv-python is required. pip install opencv-python") from e
 
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
@@ -276,8 +274,7 @@ def generate_clips_for_video(
     video_path = PROJECT_ROOT / video.rel_path
     duration = _safe_duration_seconds(video_path)
     if duration <= 0:
-        LOGGER.warning(
-            "Could not read duration for %s, skipping.", video.rel_path)
+        LOGGER.warning("Could not read duration for %s, skipping.", video.rel_path)
         return []
 
     # start times (sliding window)
@@ -415,8 +412,7 @@ def preprocess(
     videos_csv = manifests_dir / "videos.csv"
     _write_csv(
         videos_csv,
-        [asdict(v) | {"split": split_map.get(v.video_id, "train")}
-         for v in videos],
+        [asdict(v) | {"split": split_map.get(v.video_id, "train")} for v in videos],
     )
 
     all_clips: list[ClipRecord] = []

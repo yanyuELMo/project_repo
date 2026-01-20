@@ -17,5 +17,6 @@ pytest-cov
 ruff
 black
 isort
+pre-commit
 
 opencv-python-headless
