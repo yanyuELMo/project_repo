@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 
-from src.train import evaluate
-from src.train import _sample_indices, _summarize_profile, _maybe_init_wandb
+from src.train import _maybe_init_wandb, _sample_indices, _summarize_profile, evaluate
 
 
 class _DummyModel(nn.Module):
@@ -107,8 +106,9 @@ def test_summarize_profile_and_wandb_disabled(monkeypatch):
     assert summary["load_max_s"] == 0.2
 
     # wandb disabled -> None
-    from omegaconf import OmegaConf
     from pathlib import Path
+
+    from omegaconf import OmegaConf
 
     cfg = OmegaConf.create({"wandb": {"enabled": False}})
     res = _maybe_init_wandb(cfg, Path("."))

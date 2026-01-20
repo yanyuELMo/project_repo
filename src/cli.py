@@ -46,7 +46,9 @@ def preprocess(
     _run_module("src.preprocess", merged)
 
 
-@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.command(
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+)
 def train(
     ctx: typer.Context,
     overrides: Optional[List[str]] = typer.Argument(  # type: ignore[call-arg]
