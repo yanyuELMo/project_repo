@@ -80,7 +80,7 @@ will check the repositories and the code to verify your answers.
 * [X] Write unit tests related to model construction and or model training (M16)
 * [X] Calculate the code coverage (M16)
 * [X] Get some continuous integration running on the GitHub repository (M17)
-* [ ] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
+* [X] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
 * [X] Add a linting step to your continuous integration (M17)
 * [X] Add pre-commit hooks to your version control setup (M18)
 * [ ] Add a continues workflow that triggers when data changes (M19)
