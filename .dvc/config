@@ -1,4 +1,6 @@
 [core]
-    remote = local
-['remote "local"']
+    remote = gcs
+[remote "local"]
     url = /home/vscode/dvc_remote
+[remote "gcs"]
+    url = gs://mlops02476-accident-data-eu-7f3a

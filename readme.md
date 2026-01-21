@@ -31,6 +31,7 @@ Data source:https://github.com/pavana27/TU-DAT
 ## Data versioning (DVC)
 
 - Tracked with DVC: `data/raw` and `data/processed/clips`.
-- Pull data: `dvc pull`
-- Push data: `dvc push`
-- Default remote is local at `/home/vscode/dvc_remote` (adjust with `dvc remote add`/`dvc remote modify` for S3/GCS).
+- Default remote: GCS bucket `gs://mlops02476-accident-data-eu-7f3a` (auth via ADC or `GOOGLE_APPLICATION_CREDENTIALS=<service-account.json>`).
+- Local fallback remote: `/home/vscode/dvc_remote` (remote name `local`).
+- Pull data: `dvc pull` (uses default GCS remote); push: `dvc push`.
+- To switch remotes: `dvc remote default gcs` or `dvc remote default local`; list with `dvc remote list`.
