@@ -1,3 +1,4 @@
+logsBucket: gs://mlops02476-cloudbuild-logs-4f64
 # Builds and publishes Docker images to Artifact Registry.
 # Adjust _REGION/_REPO/_IMAGE if your registry settings differ.
 substitutions:
