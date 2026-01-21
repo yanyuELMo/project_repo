@@ -35,3 +35,9 @@ Data source:https://github.com/pavana27/TU-DAT
 - Local fallback remote: `/home/vscode/dvc_remote` (remote name `local`).
 - Pull data: `dvc pull` (uses default GCS remote); push: `dvc push`.
 - To switch remotes: `dvc remote default gcs` or `dvc remote default local`; list with `dvc remote list`.
+
+## Docker image build (Cloud Build)
+
+- Build config: `cloudbuild.yaml` builds `.devcontainer/Dockerfile`.
+- Targets: pushes to Artifact Registry `${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops02476-accident-images-eu-7f3a/app` with tags `$COMMIT_SHA` and `latest` (default `_REGION=europe-west1`).
+- Usage: create a Cloud Build trigger on push/tag that points to `cloudbuild.yaml`; manual run: `gcloud builds submit --config cloudbuild.yaml .`.

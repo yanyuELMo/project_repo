@@ -1,0 +1,22 @@
+# Builds and publishes Docker images to Artifact Registry.
+# Adjust _REGION/_REPO/_IMAGE if your registry settings differ.
+substitutions:
+  _REGION: europe-west10
+  _REPO: mlops02476-accident-images-eu-7f3a
+  _IMAGE: app
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - .devcontainer/Dockerfile
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$COMMIT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:latest
+      - .
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$COMMIT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:latest
