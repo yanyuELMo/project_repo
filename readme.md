@@ -91,5 +91,7 @@ Data source:https://github.com/pavana27/TU-DAT
 - Run locally and open http://localhost:8089 to start a test:
   ```bash
   APP_PATH=/predict NPZ_PATH=dummy.npz \
-  locust -f deploy/locustfile.py --host https://accident-api-809414772908.europe-west10.run.app
+  locust -f deploy/locustfile.py \
+    --host https://accident-api-809414772908.europe-west10.run.app \
+    --web-host 0.0.0.0 --web-port 8089
   ```
