@@ -27,6 +27,7 @@ tests/
 
 # Keep only build-relevant files
 !deploy/api/**
+!deploy/frontend/**
 !.devcontainer/requirements.txt
 !src/**
 !configs/**
