@@ -1,0 +1,33 @@
+# Exclude large/unneeded files from Cloud Build context
+.git/
+.gitignore
+.github/
+.dvc/
+.dvcignore
+.tmp/
+.pytest_cache/
+__pycache__/
+artifacts/
+data/
+outputs/
+multirun/
+reports/
+tests/
+*/*.pyc
+*.npz
+*.pt
+*.pth
+*.ckpt
+*.mov
+*.mp4
+*.avi
+*.jpg
+*.jpeg
+*.png
+
+# Keep only build-relevant files
+!deploy/api/**
+!.devcontainer/requirements.txt
+!src/**
+!configs/**
+!pyproject.toml
