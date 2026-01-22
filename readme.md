@@ -103,3 +103,18 @@ Data source:https://github.com/pavana27/TU-DAT
 - Serve locally: `bentoml serve deploy/bento/service:svc --reload`
 - Build bento: `bentoml build deploy/bento/bentofile.yaml`
 - Build container: `bentoml containerize accident-onnx-service:latest`, then push to Artifact Registry and deploy to Cloud Run.
+
+## Frontend 
+
+- App: `deploy/frontend/frontend.py` (Streamlit). Upload an `.npz` with key `frames` [T,H,W,3] uint8, call backend `/predict`, display probability/label.
+- Run locally:
+  ```bash
+  BACKEND_URL=https://accident-api-809414772908.europe-west10.run.app/predict \
+  streamlit run deploy/frontend/frontend.py --server.port 8001 --server.address 0.0.0.0
+  ```
+- Dependencies: `deploy/frontend/requirements.txt`
+- Docker build:
+  ```bash
+  docker build -t frontend:latest -f deploy/frontend/Dockerfile .
+  docker run --rm -p 8001:8001 -e BACKEND_URL=... frontend:latest
+  ```
