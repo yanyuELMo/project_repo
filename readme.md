@@ -46,3 +46,38 @@ Data source:https://github.com/pavana27/TU-DAT
 
 - App: `src/api.py` exposes `/health` and `/predict` (upload `.npz` with `frames` [T,H,W,3] uint8). Env vars: `MODEL_CHECKPOINT` (optional), `MODEL_NAME`, `K_FRAMES`, `THRESHOLD`.
 - Run locally: `uvicorn src.api:app --host 0.0.0.0 --port 8000`.
+
+## Cloud Run deployment
+
+- Runtime image (built via `deploy/api/cloudbuild.yaml`): `europe-west10-docker.pkg.dev/gen-lang-client-0354690158/mlops02476-accident-images-eu-7f3a/app:latest`.
+- Model checkpoint (GCS): `gs://mlops02476-weights-6789/weights/best.pt` (set `MODEL_CHECKPOINT`).
+- Deploy example:
+  ```
+  gcloud run deploy accident-api \
+    --project=gen-lang-client-0354690158 \
+    --region=europe-west10 \
+    --platform=managed \
+    --image=europe-west10-docker.pkg.dev/gen-lang-client-0354690158/mlops02476-accident-images-eu-7f3a/app:latest \
+    --port=8000 \
+    --cpu=1 --memory=1Gi \
+    --allow-unauthenticated \
+    --set-env-vars=MODEL_CHECKPOINT=gs://mlops02476-weights-6789/weights/best.pt,THRESHOLD=0.5
+  ```
+
+## Load testing (k6)
+
+- Script: `deploy/loadtest.js` (POST `/predict` with a `.npz` file). Env vars:
+  - `APP_URL`: Cloud Run predict URL (e.g. `https://...run.app/predict`)
+  - `NPZ_PATH`: path to a npz with `frames` [T,H,W,3] uint8
+  - Optional: `VUS` (default 5), `DURATION` (default `1m`)
+- Example:
+  ```bash
+  python - <<'PY'
+  import numpy as np
+  frames = np.random.randint(0,255,(8,32,32,3),dtype=np.uint8)
+  np.savez("dummy.npz", frames=frames)
+  PY
+  APP_URL=https://accident-api-809414772908.europe-west10.run.app/predict \
+  NPZ_PATH=dummy.npz \
+  k6 run deploy/loadtest.js
+  ```
