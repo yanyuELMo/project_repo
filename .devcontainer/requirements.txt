@@ -22,5 +22,6 @@ fastapi
 uvicorn[standard]
 httpx
 python-multipart
+gcsfs
 
 opencv-python-headless

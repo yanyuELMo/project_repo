@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import logging
 import os
 from typing import Optional
 
@@ -12,19 +13,34 @@ from src.model import build_model
 from src.train import IMAGENET_MEAN, IMAGENET_STD, _sample_indices
 
 app = FastAPI(title="Accident detection API", version="0.1.0")
+LOGGER = logging.getLogger(__name__)
 
 
 def _load_checkpoint(model: torch.nn.Module, ckpt_path: Optional[str]) -> None:
     if not ckpt_path:
         return
     path = os.path.expanduser(ckpt_path)
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"Checkpoint not found: {path}")
-    state = torch.load(path, map_location="cpu")
+    # Support GCS paths via fsspec/gcsfs
+    if path.startswith("gs://"):
+        try:
+            import fsspec
+        except ImportError:
+            LOGGER.warning(
+                "fsspec not installed; skipping GCS checkpoint load: %s", path
+            )
+            return
+        with fsspec.open(path, "rb") as f:
+            state = torch.load(f, map_location="cpu")
+    else:
+        if not os.path.exists(path):
+            LOGGER.warning("Checkpoint not found: %s (skipping load)", path)
+            return
+        state = torch.load(path, map_location="cpu")
     # allow checkpoint either as full dict or under "state_dict"
     if isinstance(state, dict) and "state_dict" in state:
         state = {k.replace("model.", ""): v for k, v in state["state_dict"].items()}
     model.load_state_dict(state)
+    LOGGER.info("Loaded checkpoint from %s", path)
 
 
 def _preprocess_frames(
