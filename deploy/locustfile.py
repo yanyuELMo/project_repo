@@ -10,7 +10,6 @@ from pathlib import Path
 
 from locust import HttpUser, between, task
 
-
 APP_PATH = os.environ.get("APP_PATH", "/predict")
 NPZ_PATH = os.environ.get("NPZ_PATH", "dummy.npz")
 
