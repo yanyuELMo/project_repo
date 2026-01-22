@@ -26,6 +26,7 @@ gcsfs
 onnx
 onnxruntime
 bentoml
+google-cloud-storage
 
 opencv-python-headless
 locust
