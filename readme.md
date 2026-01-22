@@ -96,7 +96,7 @@ Data source:https://github.com/pavana27/TU-DAT
     --web-host 0.0.0.0 --web-port 8089
   ```
 
-## ONNX + BentoML serving 
+## ONNX + BentoML serving
 
 - Export ONNX: `python deploy/scripts/export_onnx.py --checkpoint artifacts/checkpoints/outputs/2026-01-19/21-59-25/best.pt --output artifacts/checkpoints/best.onnx --k-frames 8 --height 224 --width 224`
 - Bento service file: `deploy/bento/service.py`; packaging config: `deploy/bento/bentofile.yaml` (includes `best.onnx`).

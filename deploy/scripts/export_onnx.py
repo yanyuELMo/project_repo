@@ -26,7 +26,9 @@ def _load_checkpoint(model: torch.nn.Module, ckpt_path: Path | None) -> None:
         LOGGER.warning("No checkpoint provided; exporting random-initialized weights.")
         return
     if not ckpt_path.exists():
-        LOGGER.warning("Checkpoint not found at %s; exporting random weights.", ckpt_path)
+        LOGGER.warning(
+            "Checkpoint not found at %s; exporting random weights.", ckpt_path
+        )
         return
     state = torch.load(ckpt_path, map_location="cpu")
     if isinstance(state, dict) and "state_dict" in state:
