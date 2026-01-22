@@ -1,0 +1,16 @@
+{
+  "n_videos": 1,
+  "n_clips": 1,
+  "by_split": {
+    "train": 1,
+    "val": 0,
+    "test": 0
+  },
+  "by_label": {
+    "0": 0,
+    "1": 1
+  },
+  "by_subset": {
+    "rash": 1
+  }
+}
