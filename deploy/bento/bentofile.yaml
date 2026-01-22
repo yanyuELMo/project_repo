@@ -1,0 +1,11 @@
+service: "deploy.bento.service:svc"
+labels:
+  project: accident-detection
+include:
+  - deploy/bento/service.py
+  - artifacts/checkpoints/best.onnx
+python:
+  packages:
+    - bentoml
+    - onnxruntime
+    - numpy

@@ -23,6 +23,9 @@ uvicorn[standard]
 httpx
 python-multipart
 gcsfs
+onnx
+onnxruntime
+bentoml
 
 opencv-python-headless
 locust
