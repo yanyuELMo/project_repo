@@ -104,7 +104,7 @@ Data source:https://github.com/pavana27/TU-DAT
 - Build bento: `bentoml build deploy/bento/bentofile.yaml`
 - Build container: `bentoml containerize accident-onnx-service:latest`, then push to Artifact Registry and deploy to Cloud Run.
 
-## Frontend 
+## Frontend
 
 - App: `deploy/frontend/frontend.py` (Streamlit). Upload an `.npz` with key `frames` [T,H,W,3] uint8, call backend `/predict`, display probability/label.
 - Run locally:

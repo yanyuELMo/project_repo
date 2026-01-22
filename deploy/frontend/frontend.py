@@ -12,7 +12,9 @@ import numpy as np
 import requests
 import streamlit as st
 
-BACKEND_URL_DEFAULT = os.getenv("BACKEND_URL", "").strip() or "http://127.0.0.1:8000/predict"
+BACKEND_URL_DEFAULT = (
+    os.getenv("BACKEND_URL", "").strip() or "http://127.0.0.1:8000/predict"
+)
 
 
 def normalize_url(url: str) -> str:
@@ -26,7 +28,9 @@ def normalize_url(url: str) -> str:
 
 def send_request(backend_url: str, npz_bytes: bytes) -> tuple[bool, str]:
     try:
-        files = {"file": ("frames.npz", io.BytesIO(npz_bytes), "application/octet-stream")}
+        files = {
+            "file": ("frames.npz", io.BytesIO(npz_bytes), "application/octet-stream")
+        }
         resp = requests.post(backend_url, files=files, timeout=30)
     except Exception as exc:  # pragma: no cover - network
         return False, f"Request failed: {exc}"
