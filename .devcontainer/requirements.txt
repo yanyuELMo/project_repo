@@ -18,5 +18,7 @@ ruff
 black
 isort
 pre-commit
+fastapi
+uvicorn[standard]
 
 opencv-python-headless
