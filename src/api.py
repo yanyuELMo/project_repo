@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 import io
+import json
 import logging
 import os
+import time
+import uuid
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 import numpy as np
 import torch
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 
 from src.model import build_model
 from src.train import IMAGENET_MEAN, IMAGENET_STD, _sample_indices
@@ -68,9 +73,40 @@ _MODEL_NAME = os.getenv("MODEL_NAME", "temporal_avg_resnet18")
 _MODEL_CKPT = os.getenv("MODEL_CHECKPOINT")  # optional path
 _K_FRAMES = int(os.getenv("K_FRAMES", "8"))
 _THRESHOLD = float(os.getenv("THRESHOLD", "0.5"))
+_MODEL_VERSION = os.getenv("MODEL_VERSION", "v1")
+_LOG_BUCKET = os.getenv("LOG_BUCKET")  # optional GCS bucket for request logs
+_LOCAL_LOG_DIR = Path("artifacts/api_logs")
 _MODEL = build_model(_MODEL_NAME, pretrained=False)
 _load_checkpoint(_MODEL, _MODEL_CKPT)
 _MODEL.eval()
+
+
+def _log_request_async(record: dict[str, object]) -> None:
+    """Write request/response summary to GCS if configured, otherwise local."""
+    ts = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    record = {"timestamp": ts, **record}
+    data = json.dumps(record)
+
+    if _LOG_BUCKET:
+        try:
+            from google.cloud import storage  # type: ignore
+
+            client = storage.Client()
+            bucket = client.bucket(_LOG_BUCKET)
+            day_prefix = datetime.utcnow().strftime("%Y/%m/%d")
+            blob_name = f"requests/{day_prefix}/log_{uuid.uuid4().hex}.json"
+            blob = bucket.blob(blob_name)
+            blob.upload_from_string(data, content_type="application/json")
+            return
+        except Exception as exc:
+            LOGGER.warning("Failed to write log to bucket %s: %s", _LOG_BUCKET, exc)
+
+    try:
+        _LOCAL_LOG_DIR.mkdir(parents=True, exist_ok=True)
+        log_path = _LOCAL_LOG_DIR / f"log_{ts}_{uuid.uuid4().hex}.json"
+        log_path.write_text(data, encoding="utf-8")
+    except Exception as exc:
+        LOGGER.warning("Failed to write local log: %s", exc)
 
 
 @app.get("/health")
@@ -79,11 +115,14 @@ def health() -> dict[str, str]:
 
 
 @app.post("/predict")
-def predict(file: UploadFile = File(...)) -> dict[str, float | int]:
+def predict(
+    background_tasks: BackgroundTasks, file: UploadFile = File(...)
+) -> dict[str, float | int]:
     """
     Accepts an uploaded .npz file with key 'frames' of shape [T, H, W, 3] uint8.
     Returns probability and binary label.
     """
+    start = time.time()
     if not file.filename.endswith(".npz"):
         raise HTTPException(status_code=400, detail="Expected an .npz file")
     try:
@@ -102,7 +141,22 @@ def predict(file: UploadFile = File(...)) -> dict[str, float | int]:
         logits = _MODEL(x)
         prob = torch.sigmoid(logits).item()
     label = int(prob >= _THRESHOLD)
-    return {"probability": float(prob), "label": label}
+    resp = {"probability": float(prob), "label": label}
+
+    if background_tasks is not None:
+        record = {
+            "request_id": uuid.uuid4().hex,
+            "frames_shape": list(frames.shape),
+            "frames_mean": float(frames.mean()),
+            "frames_std": float(frames.std()),
+            "prediction": resp,
+            "model_name": _MODEL_NAME,
+            "model_version": _MODEL_VERSION,
+            "latency_ms": int((time.time() - start) * 1000),
+        }
+        background_tasks.add_task(_log_request_async, record)
+
+    return resp
 
 
 # To run locally: uvicorn src.api:app --reload --host 0.0.0.0 --port 8000
