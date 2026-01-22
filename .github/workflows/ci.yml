@@ -64,5 +64,6 @@ jobs:
       - name: Run tests
         env:
           PYTHONPATH: ${{ github.workspace }}
+          TMPDIR: ${{ runner.temp }}
         run: |
           python -m pytest -q
