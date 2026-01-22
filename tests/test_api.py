@@ -1,5 +1,4 @@
 import io
-import os
 
 import numpy as np
 from fastapi.testclient import TestClient
