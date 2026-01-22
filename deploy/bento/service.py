@@ -8,13 +8,12 @@ Sampling, normalization, and ONNX inference are handled inside the service.
 from __future__ import annotations
 
 import os
-from typing import Any
+from pathlib import Path
 
 import bentoml
 import numpy as np
 import onnxruntime as ort
 from bentoml.io import NumpyNdarray
-from pathlib import Path
 
 
 def _sample_indices(t: int, k: int) -> np.ndarray:
@@ -35,7 +34,9 @@ def _preprocess(frames: np.ndarray, k_frames: int) -> np.ndarray:
     frames = frames[sel]
     x = frames.astype(np.float32) / 255.0  # [k, H, W, 3]
     x = np.transpose(x, (0, 3, 1, 2))  # [k, 3, H, W]
-    imagenet_mean = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(1, 3, 1, 1)
+    imagenet_mean = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(
+        1, 3, 1, 1
+    )
     imagenet_std = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(1, 3, 1, 1)
     x = (x - imagenet_mean) / imagenet_std
     return x[None, ...]  # [1, k, 3, H, W]
