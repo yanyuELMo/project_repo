@@ -20,5 +20,6 @@ isort
 pre-commit
 fastapi
 uvicorn[standard]
+httpx
 
 opencv-python-headless
