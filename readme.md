@@ -118,3 +118,17 @@ Data source:https://github.com/pavana27/TU-DAT
   docker build -t frontend:latest -f deploy/frontend/Dockerfile .
   docker run --rm -p 8001:8001 -e BACKEND_URL=... frontend:latest
   ```
+
+## Data drift check
+
+- Build features from clips: `python scripts/build_baseline_features.py --input-dir data/processed/clips --output baseline.csv --limit 500`
+- Drift report: `scripts/drift_report.py` (Evidently). Input: reference CSV and current CSV with aligned columns.
+- Example:
+  ```bash
+  python scripts/drift_report.py \
+    --reference baseline.csv \
+    --current current.csv \
+    --out-html artifacts/evidently_drift_report.html \
+    --out-json artifacts/evidently_drift_report.json
+  ```
+- Dependencies: `evidently` (in `.devcontainer/requirements.txt`)
