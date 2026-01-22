@@ -25,3 +25,4 @@ python-multipart
 gcsfs
 
 opencv-python-headless
+locust

@@ -81,3 +81,15 @@ Data source:https://github.com/pavana27/TU-DAT
   NPZ_PATH=dummy.npz \
   k6 run deploy/loadtest.js
   ```
+
+## Load testing (Locust)
+
+- Script: `deploy/locustfile.py` (POST `/predict` with a `.npz` file). Env vars:
+  - `NPZ_PATH`: path to a npz with `frames` [T,H,W,3] uint8
+  - `APP_PATH`: predict path (default `/predict`)
+- Install: `pip install locust` (already listed in `.devcontainer/requirements.txt`).
+- Run locally and open http://localhost:8089 to start a test:
+  ```bash
+  APP_PATH=/predict NPZ_PATH=dummy.npz \
+  locust -f deploy/locustfile.py --host https://accident-api-809414772908.europe-west10.run.app
+  ```
