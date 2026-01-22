@@ -1,2 +1,0 @@
-clip_id,video_id,start_sec,duration_sec,target_fps,n_frames,img_size,label,subset,split,rel_path
-c1,v1,0.0,1.0,1,1,8,1,rash,train,processed/clips/c1.npz
