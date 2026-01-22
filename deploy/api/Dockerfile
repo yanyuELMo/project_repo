@@ -22,4 +22,4 @@ ENV PYTHONPATH=/app
 ENV PORT=8000
 
 # Default to CPU inference; env vars can override in Cloud Run
-CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn src.api:app --host 0.0.0.0 --port ${PORT:-8000}"]
