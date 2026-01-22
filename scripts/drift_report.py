@@ -45,7 +45,9 @@ def run_report(reference: Path, current: Path, out_html: Path, out_json: Path) -
     # Print a quick summary
     try:
         data_drift = report.as_dict()["metrics"][0]["result"]["data"]
-        print(f"Data drift share: {data_drift.get('drift_share')}, drift detected: {data_drift.get('dataset_drift')}")
+        print(
+            f"Data drift share: {data_drift.get('drift_share')}, drift detected: {data_drift.get('dataset_drift')}"
+        )
     except Exception:
         pass
 
@@ -54,9 +56,21 @@ def run_report(reference: Path, current: Path, out_html: Path, out_json: Path) -
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate an Evidently data drift report.")
-    parser.add_argument("--reference", type=Path, required=True, help="Path to reference CSV (training/baseline).")
-    parser.add_argument("--current", type=Path, required=True, help="Path to current CSV (production sample).")
+    parser = argparse.ArgumentParser(
+        description="Generate an Evidently data drift report."
+    )
+    parser.add_argument(
+        "--reference",
+        type=Path,
+        required=True,
+        help="Path to reference CSV (training/baseline).",
+    )
+    parser.add_argument(
+        "--current",
+        type=Path,
+        required=True,
+        help="Path to current CSV (production sample).",
+    )
     parser.add_argument(
         "--out-html",
         type=Path,

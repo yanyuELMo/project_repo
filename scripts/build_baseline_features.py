@@ -52,10 +52,16 @@ def extract_features(npz_path: Path) -> dict[str, float]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Extract features from .npz clips for drift analysis.")
-    parser.add_argument("--input-dir", type=Path, required=True, help="Directory containing .npz clips.")
+    parser = argparse.ArgumentParser(
+        description="Extract features from .npz clips for drift analysis."
+    )
+    parser.add_argument(
+        "--input-dir", type=Path, required=True, help="Directory containing .npz clips."
+    )
     parser.add_argument("--output", type=Path, required=True, help="Output CSV path.")
-    parser.add_argument("--limit", type=int, default=None, help="Optional limit on number of files.")
+    parser.add_argument(
+        "--limit", type=int, default=None, help="Optional limit on number of files."
+    )
     args = parser.parse_args()
 
     rows = []
