@@ -41,3 +41,8 @@ Data source:https://github.com/pavana27/TU-DAT
 - Build config: `cloudbuild.yaml` builds `.devcontainer/Dockerfile`.
 - Targets: pushes to Artifact Registry `${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops02476-accident-images-eu-7f3a/app` with tags `$COMMIT_SHA` and `latest` (default `_REGION=europe-west1`).
 - Usage: create a Cloud Build trigger on push/tag that points to `cloudbuild.yaml`; manual run: `gcloud builds submit --config cloudbuild.yaml .`.
+
+## Inference API (FastAPI)
+
+- App: `src/api.py` exposes `/health` and `/predict` (upload `.npz` with `frames` [T,H,W,3] uint8). Env vars: `MODEL_CHECKPOINT` (optional), `MODEL_NAME`, `K_FRAMES`, `THRESHOLD`.
+- Run locally: `uvicorn src.api:app --host 0.0.0.0 --port 8000`.
