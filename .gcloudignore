@@ -29,6 +29,7 @@ tests/
 !deploy/api/**
 !deploy/monitoring/**
 !deploy/frontend/**
+!artifacts/baseline.csv
 !.devcontainer/requirements.txt
 !src/**
 !configs/**

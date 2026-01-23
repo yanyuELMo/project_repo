@@ -9,6 +9,7 @@ COPY deploy/monitoring/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY deploy/monitoring/app.py app.py
+COPY deploy/monitoring/baseline.csv artifacts/baseline.csv
 
 EXPOSE 8080
 
