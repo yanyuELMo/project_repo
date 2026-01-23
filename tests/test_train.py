@@ -120,6 +120,7 @@ def test_sample_indices_train_and_eval():
 
 def test_sample_indices_invalid_clip():
     import numpy as np
+
     with pytest.raises(ValueError):
         _sample_indices(t=0, k=1, train=True, rng=np.random.default_rng(0))
 

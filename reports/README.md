@@ -202,7 +202,7 @@ We bootstrapped from the DrivenData cookiecutter-data-science template. Kept the
 >
 > Answer:
 
-We enforced code quality via pre-commit and CI: black for formatting, isort for imports, ruff for linting, plus pytest/pytest-cov in CI with cached dependencies. Config lives in .pre-commit-config.yaml and pyproject.toml, so checks run locally and on GitHub Actions. We added typing gradually (type hints on core modules) to catch interface errors early, though we didn’t go full mypy-gate. Documentation lives in README.md, docs/ (MkDocs for Pages), and inline docstrings/comments where the logic isn’t obvious. 
+We enforced code quality via pre-commit and CI: black for formatting, isort for imports, ruff for linting, plus pytest/pytest-cov in CI with cached dependencies. Config lives in .pre-commit-config.yaml and pyproject.toml, so checks run locally and on GitHub Actions. We added typing gradually (type hints on core modules) to catch interface errors early, though we didn’t go full mypy-gate. Documentation lives in README.md, docs/ (MkDocs for Pages), and inline docstrings/comments where the logic isn’t obvious.
 In my opinion, it is especially significant in vibe codeing and coding with others. On the one hand, it's a good way to keep the codes easy to read and clear. On the other hand it is help you to understand code as you will forget how you code work when you when you haven't opened the project in a long time. haha，after all, yesterday-you and today-you are basically different builds.
 
 ## Version control
@@ -222,7 +222,7 @@ In my opinion, it is especially significant in vibe codeing and coding with othe
 >
 > Answer:
 
-We have 14 tests. They cover the critical paths: API health/predict happy path and error handling; data utilities (split stratification, clip dataset tensor shapes/dtypes, video discovery); model construction/forward shapes and invalid-name guard; preprocessing writes manifests/stats; training logic (evaluation metrics for clips/videos, sampling indices, profiling summaries, W&B init when disabled). These run in CI to guard regressions on data ingestion, model IO, and service endpoints.
+We have 20 automated tests. They cover the API (health/predict happy path and error handling), data utilities (split stratification, clip dataset shapes/dtypes, video discovery), model construction/forward shapes and invalid-name guards, preprocessing manifests/stats, training utilities (evaluation metrics for clips/videos, sampling indices, profiling/W&B init), and CLI wrappers (Typer commands, multirun flag, formatter/report validation). These focus on the most critical paths: data ingestion, model I/O, service endpoints, and training/inference glue.
 
 ### Question 8
 
