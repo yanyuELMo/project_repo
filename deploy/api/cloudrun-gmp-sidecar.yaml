@@ -1,0 +1,36 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: accident-api-gmp
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/container-dependencies: '{"collector":["app"]}'
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "3"
+    spec:
+      containerConcurrency: 80
+      containers:
+        - name: app
+          image: europe-west10-docker.pkg.dev/gen-lang-client-0354690158/mlops02476-accident-images-eu-7f3a/app@sha256:9f65aa058a672354930b66b355962d9313e7bdd11c8fa469131dc3cd280c1567
+          env:
+            - name: MODEL_CHECKPOINT
+              value: gs://mlops02476-weights-6789/weights/best.pt
+            - name: LOG_BUCKET
+              value: mlops02476-api-logs-eu-0f48
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          ports:
+            - name: http1
+              containerPort: 8080
+        - name: collector
+          image: us-docker.pkg.dev/cloud-ops-agents-artifacts/cloud-run-gmp-sidecar/cloud-run-gmp-sidecar:1.2.0
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
