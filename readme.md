@@ -46,6 +46,7 @@ Data source:https://github.com/pavana27/TU-DAT
 
 - App: `src/api.py` exposes `/health` and `/predict` (upload `.npz` with `frames` [T,H,W,3] uint8). Env vars: `MODEL_CHECKPOINT` (optional), `MODEL_NAME`, `K_FRAMES`, `THRESHOLD`.
 - Run locally: `uvicorn src.api:app --host 0.0.0.0 --port 8000`.
+- Metrics: Prometheus `/metrics` endpoint (Counters for requests/errors; Histogram for latency) for scraping/Monitoring.
 
 ## Cloud Run deployment
 
@@ -63,6 +64,7 @@ Data source:https://github.com/pavana27/TU-DAT
     --allow-unauthenticated \
     --set-env-vars=MODEL_CHECKPOINT=gs://mlops02476-weights-6789/weights/best.pt,THRESHOLD=0.5
   ```
+- With Prometheus sidecar to push metrics to Cloud Monitoring: template in `deploy/api/cloudrun-metrics.yaml` (adds otel-collector sidecar scraping `http://127.0.0.1:8000/metrics` and exporting to `gen-lang-client-0354690158`).
 
 ## Load testing (k6)
 
@@ -145,7 +147,7 @@ Data source:https://github.com/pavana27/TU-DAT
   ```
 - Endpoints: `/drift` (HTML report), `/drift/json` (JSON summary).
 - Docker: `deploy/monitoring/Dockerfile` (port 8080).
-- Cloud Run (deployed): `https://drift-api-809414772908.europe-west10.run.app`; quick check:
+- Cloud Run URL: `https://drift-api-809414772908.europe-west10.run.app`; quick check:
   ```bash
   curl -s https://drift-api-809414772908.europe-west10.run.app/drift/json | head
   ```
