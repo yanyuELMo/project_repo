@@ -3,6 +3,8 @@ FROM mcr.microsoft.com/devcontainers/miniconda:1-3
 ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-lc"]
 
+RUN rm -f /etc/apt/sources.list.d/yarn.list
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl wget ffmpeg \
     libglib2.0-0 libsm6 libxext6 \
