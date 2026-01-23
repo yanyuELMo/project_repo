@@ -19,7 +19,6 @@ spec:
           env:
             - name: PORT
               value: "8000"
-            # Example model/env config; adjust as needed
             - name: MODEL_CHECKPOINT
               value: gs://mlops02476-weights-6789/weights/best.pt
             - name: LOG_BUCKET
@@ -68,4 +67,3 @@ spec:
             limits:
               cpu: "1"
               memory: 512Mi
-*** End Patch♀♀♀♀assistant to=functions.shell_command＿久久爱commentary  מאַכן JSON## Test Input Reasoning
