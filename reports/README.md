@@ -148,7 +148,7 @@ s242647
 >
 > Answer:
 
---- question 3 fill here ---
+We used the third-party framework k6 in our project. We used functionality for HTTP load scripting and built-in metrics from the package to stress test the Cloud Run inference API and validate its performance and stability under concurrent traffic.
 
 ## Coding environment
 
@@ -168,7 +168,10 @@ s242647
 >
 > Answer:
 
---- question 4 fill here ---
+We used a devcontainer + conda/mamba to manage dependencies. The list of dependencies is tracked in requirements.txt (runtime + dev tooling) and tooling configs live in pyproject.toml/.pre-commit-config.yaml for formatting/linting consistency. You can open in VS Code devcontainer or build the devcontainer image to auto-create the mlops conda env and install requirements. To get a complete copy of our environment, run these cammands in ur cmd:
+docker build -f .devcontainer/Dockerfile -t mlops-devcontainer
+docker run -it --rm -v "$PWD":/workspaces/project_repo mlops-devcontainer bash
+Also you can use show and run commands in vs code and click reopen in container :)
 
 ### Question 5
 
@@ -184,7 +187,7 @@ s242647
 >
 > Answer:
 
---- question 5 fill here ---
+We bootstrapped from the DrivenData cookiecutter-data-science template. Kept the core skeleton: data/ (raw/processed tracked via DVC), reports/figures/, README.md, pyproject.toml, tests/, and the source code folder (we use src/ instead of the templated module name, containing model, training, FastAPI inference, Typer CLI). We did not rely on the template’s notebooks/, references/, or models/ as primary flows. Deviations/extensions: added configs/ (Hydra configs), artifacts/ (checkpoints/metrics), scripts/ (baseline/drift/ONNX quantization), and a large deploy/ (Cloud Run Dockerfile + GMP sidecar, Evidently drift API, Streamlit frontend, BentoML service, k6/Locust load tests). We also added a .devcontainer/ for a reproducible conda environment,  + mkdocs.yml for GitHub Pages, and extra GitHub Actions (CI, data/registry triggers, docs).
 
 ### Question 6
 
@@ -199,7 +202,8 @@ s242647
 >
 > Answer:
 
---- question 6 fill here ---
+We enforced code quality via pre-commit and CI: black for formatting, isort for imports, ruff for linting, plus pytest/pytest-cov in CI with cached dependencies. Config lives in .pre-commit-config.yaml and pyproject.toml, so checks run locally and on GitHub Actions. We added typing gradually (type hints on core modules) to catch interface errors early, though we didn’t go full mypy-gate. Documentation lives in README.md, docs/ (MkDocs for Pages), and inline docstrings/comments where the logic isn’t obvious. 
+In my opinion, it is especially significant in vibe codeing and coding with others. On the one hand, it's a good way to keep the codes easy to read and clear. On the other hand it is help you to understand code as you will forget how you code work when you when you haven't opened the project in a long time. haha，after all, yesterday-you and today-you are basically different builds.
 
 ## Version control
 
@@ -218,7 +222,7 @@ s242647
 >
 > Answer:
 
---- question 7 fill here ---
+We have 14 tests. They cover the critical paths: API health/predict happy path and error handling; data utilities (split stratification, clip dataset tensor shapes/dtypes, video discovery); model construction/forward shapes and invalid-name guard; preprocessing writes manifests/stats; training logic (evaluation metrics for clips/videos, sampling indices, profiling summaries, W&B init when disabled). These run in CI to guard regressions on data ingestion, model IO, and service endpoints.
 
 ### Question 8
 

@@ -1,3 +1,4 @@
+import pytest
 import torch
 import torch.nn as nn
 
@@ -83,6 +84,28 @@ def test_evaluate_video_metrics_mean_agg():
     assert metrics["clip_auc"] is not None
 
 
+def test_evaluate_invalid_agg():
+    model = _DummyModel()
+    loader = [
+        {
+            "x": torch.zeros((2, 1, 3, 4, 4)),
+            "y": torch.tensor([1.0, 0.0]),
+            "video_id": ["v1", "v1"],
+        }
+    ]
+    with pytest.raises(ValueError):
+        evaluate(
+            model,
+            loader,
+            device=torch.device("cpu"),
+            agg="invalid",
+            clip_threshold=0.5,
+            video_threshold=0.5,
+            ratio_threshold=0.5,
+            use_video_metrics=True,
+        )
+
+
 def test_sample_indices_train_and_eval():
     import numpy as np
 
@@ -93,6 +116,12 @@ def test_sample_indices_train_and_eval():
     # eval path is deterministic linspace
     idx_eval = _sample_indices(t=5, k=3, train=False, rng=np.random.default_rng(1))
     assert idx_eval.tolist() == [0, 2, 4]
+
+
+def test_sample_indices_invalid_clip():
+    import numpy as np
+    with pytest.raises(ValueError):
+        _sample_indices(t=0, k=1, train=True, rng=np.random.default_rng(0))
 
 
 def test_summarize_profile_and_wandb_disabled(monkeypatch):
