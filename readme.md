@@ -4,6 +4,7 @@ End-to-end MLOps pipeline for road traffic accident detection (videos → model 
  Built as the final project for **DTU 02476 — Machine Learning Operations (MLOps)**, focusing on applying a range of MLOps/DevOps tools (Hydra, DVC, CI/CD, Cloud Run, Monitoring, load testing, quantization, etc.).
  Data: https://github.com/pavana27/TU-DAT
 
+the Page of this project is https://yanyuelmo.github.io/project_repo/
 ## Project structure
 ```
 README.md             # You are here (project overview/usage)
