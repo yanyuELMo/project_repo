@@ -4,6 +4,7 @@
 /outputs/
 /multirun/
 /.coverage
+/site/
 __pycache__/
 **/__pycache__/
 .tmp/

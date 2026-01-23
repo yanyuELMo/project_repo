@@ -1,0 +1,28 @@
+site_name: Accident Detection MLOps
+site_description: End-to-end MLOps pipeline for road traffic accident detection.
+repo_url: https://github.com/yanyuELMo/project_repo
+repo_name: yanyuELMo/project_repo
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: light blue
+
+nav:
+  - Overview: index.md
+  - Pipeline: pipeline.md
+  - Usage: usage.md
+  - Deployment & Ops: deployment.md
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - toc:
+      permalink: true
