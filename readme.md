@@ -70,6 +70,19 @@ Data source:https://github.com/pavana27/TU-DAT
   - In Metrics Explorer (PromQL): set time range to “Last 1h”, query `sum by(service_name,endpoint,status)(api_requests_total)` or view histograms via `sum by(le)(rate(api_request_latency_seconds_bucket[5m]))`.
   - If you prefer UI picking: Metrics -> Prometheus Target -> Api -> `api_requests_total/counter` (or latency histogram) -> Apply.
 
+## Model speedups (quantization)
+
+- Quantize ONNX to INT8 with dynamic quantization:
+  ```bash
+  python scripts/quantize_onnx.py \
+    --input artifacts/checkpoints/best.onnx \
+    --output artifacts/checkpoints/best-int8.onnx
+  ```
+  (script merges external weights, drops value_info to avoid shape-infer conflicts). Generated files:
+  - `artifacts/checkpoints/best-int8.onnx` (INT8 quantized, ~11MB)
+  - `artifacts/checkpoints/best-int8-merged.onnx` (FP32 merged, ~43MB)
+- Serve `best-int8.onnx` with ONNX Runtime/TensorRT for faster inference; validate accuracy on a held-out set before deploying.
+
 ## Load testing (k6)
 
 - Script: `deploy/loadtest.js` (POST `/predict` with a `.npz` file). Env vars:
