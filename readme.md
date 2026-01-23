@@ -64,7 +64,11 @@ Data source:https://github.com/pavana27/TU-DAT
     --allow-unauthenticated \
     --set-env-vars=MODEL_CHECKPOINT=gs://mlops02476-weights-6789/weights/best.pt,THRESHOLD=0.5
   ```
-- With Prometheus sidecar to push metrics to Cloud Monitoring: template in `deploy/api/cloudrun-metrics.yaml` (adds otel-collector sidecar scraping `http://127.0.0.1:8000/metrics` and exporting to `gen-lang-client-0354690158`).
+- Cloud Monitoring (GMP sidecar):
+  - Deployed service: `accident-api-gmp` (URL: `https://accident-api-gmp-809414772908.europe-west10.run.app`), using official sidecar config `deploy/api/cloudrun-gmp-sidecar.yaml` (scrapes `/metrics` on port 8080 and pushes to Managed Prometheus).
+  - Generate traffic so metrics appear: `curl -s -X POST -F file=@dummy.npz https://accident-api-gmp-809414772908.europe-west10.run.app/predict` (the repo ships `dummy.npz`; any NPZ with `frames` works).
+  - In Metrics Explorer (PromQL): set time range to “Last 1h”, query `sum by(service_name,endpoint,status)(api_requests_total)` or view histograms via `sum by(le)(rate(api_request_latency_seconds_bucket[5m]))`.
+  - If you prefer UI picking: Metrics -> Prometheus Target -> Api -> `api_requests_total/counter` (or latency histogram) -> Apply.
 
 ## Load testing (k6)
 
