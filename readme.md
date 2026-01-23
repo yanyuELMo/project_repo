@@ -132,3 +132,16 @@ Data source:https://github.com/pavana27/TU-DAT
     --out-json artifacts/evidently_drift_report.json
   ```
 - Dependencies: `evidently` (in `.devcontainer/requirements.txt`)
+
+## Drift monitoring API
+
+- Service: `deploy/monitoring/app.py` (FastAPI). Reads baseline CSV and latest logs from `LOG_BUCKET`, runs Evidently (DataDrift + DataQuality), returns HTML/JSON.
+- Env: `BASELINE_CSV` (default `artifacts/baseline.csv`), `LOG_BUCKET` (e.g. `mlops02476-api-logs-eu-0f48`), `CURRENT_LIMIT` (default 100).
+- Run locally:
+  ```bash
+  BASELINE_CSV=artifacts/baseline.csv \
+  LOG_BUCKET=mlops02476-api-logs-eu-0f48 \
+  uvicorn deploy.monitoring.app:app --host 0.0.0.0 --port 8080
+  ```
+- Endpoints: `/drift` (HTML report), `/drift/json` (JSON summary).
+- Docker: `deploy/monitoring/Dockerfile` (port 8080).
