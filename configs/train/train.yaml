@@ -19,7 +19,7 @@ eval:
   ratio_threshold: 0.5
 
 wandb:
-  enabled: false
+  enabled: true
   project: accident-detection
   entity:
   run_name:

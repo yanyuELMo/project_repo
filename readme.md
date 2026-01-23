@@ -1,7 +1,7 @@
 # Accident Detection with TU-DAT (DTU 02476 MLOps)
 
 End-to-end MLOps pipeline for road traffic accident detection (videos → model → API → monitoring).
- Built as the final project for **DTU 02476 — Machine Learning Operations (MLOps)**, focusing on applying a range of MLOps/DevOps tools (Hydra, DVC, CI/CD, Cloud Run, Monitoring, load testing, quantization, etc.). 
+ Built as the final project for **DTU 02476 — Machine Learning Operations (MLOps)**, focusing on applying a range of MLOps/DevOps tools (Hydra, DVC, CI/CD, Cloud Run, Monitoring, load testing, quantization, etc.).
  Data: https://github.com/pavana27/TU-DAT
 
 ## Project structure (essentials)
@@ -57,7 +57,7 @@ reports/              # Course report/figures (left untouched)
 - Config: `configs/train/train.yaml` (batch_size, k_frames, num_workers, etc.).
 - DataLoader already supports multi-worker (`train.num_workers`); increase for faster I/O.
 - Profiling: `python -m src.cli train train.profile_steps=10 train.profile_only=true`.
-- W&B optional: `wandb.enabled=true` etc.
+- W&B logging enabled by default (`wandb.enabled=true`); set `WANDB_API_KEY` and optionally `wandb.project/entity/run_name/tags`. To disable: `wandb.enabled=false` or `wandb.mode=disabled`.
 
 ## Inference API (FastAPI)
 - Code: `src/api.py` — endpoints `/health`, `/predict` (upload `.npz` with `frames` [T,H,W,3] uint8).
