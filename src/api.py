@@ -13,6 +13,8 @@ from typing import Optional
 import numpy as np
 import torch
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import Response
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 from src.model import build_model
 from src.train import IMAGENET_MEAN, IMAGENET_STD, _sample_indices
@@ -80,6 +82,17 @@ _MODEL = build_model(_MODEL_NAME, pretrained=False)
 _load_checkpoint(_MODEL, _MODEL_CKPT)
 _MODEL.eval()
 
+# Prometheus metrics
+REQUESTS_TOTAL = Counter(
+    "api_requests_total", "Total API requests", ["endpoint", "status"]
+)
+ERRORS_TOTAL = Counter("api_errors_total", "Total API errors", ["endpoint"])
+REQUEST_LATENCY = Histogram(
+    "api_request_latency_seconds",
+    "Request latency in seconds",
+    ["endpoint"],
+)
+
 
 def _log_request_async(record: dict[str, object]) -> None:
     """Write request/response summary to GCS if configured, otherwise local."""
@@ -122,41 +135,55 @@ def predict(
     Accepts an uploaded .npz file with key 'frames' of shape [T, H, W, 3] uint8.
     Returns probability and binary label.
     """
-    start = time.time()
-    if not file.filename.endswith(".npz"):
-        raise HTTPException(status_code=400, detail="Expected an .npz file")
+    start = time.perf_counter()
+    endpoint = "predict"
+    status_label = "200"
     try:
+        if not file.filename.endswith(".npz"):
+            raise HTTPException(status_code=400, detail="Expected an .npz file")
         data = np.load(io.BytesIO(file.file.read()), allow_pickle=False)
-    except Exception as e:  # pragma: no cover - FastAPI wraps errors
-        raise HTTPException(status_code=400, detail=f"Failed to read npz: {e}")
-    if "frames" not in data:
-        raise HTTPException(status_code=400, detail="Key 'frames' not found in npz")
-    frames = data["frames"]
-    try:
+        if "frames" not in data:
+            raise HTTPException(status_code=400, detail="Key 'frames' not found in npz")
+        frames = data["frames"]
         x = _preprocess_frames(frames, k_frames=_K_FRAMES)
+        with torch.no_grad():
+            logits = _MODEL(x)
+            prob = torch.sigmoid(logits).item()
+        label = int(prob >= _THRESHOLD)
+        resp = {"probability": float(prob), "label": label}
+
+        if background_tasks is not None:
+            record = {
+                "request_id": uuid.uuid4().hex,
+                "frames_shape": list(frames.shape),
+                "frames_mean": float(frames.mean()),
+                "frames_std": float(frames.std()),
+                "prediction": resp,
+                "model_name": _MODEL_NAME,
+                "model_version": _MODEL_VERSION,
+                "latency_ms": int((time.perf_counter() - start) * 1000),
+            }
+            background_tasks.add_task(_log_request_async, record)
+
+        return resp
+    except HTTPException as exc:
+        status_label = str(exc.status_code)
+        ERRORS_TOTAL.labels(endpoint=endpoint).inc()
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        status_label = "500"
+        ERRORS_TOTAL.labels(endpoint=endpoint).inc()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        duration = time.perf_counter() - start
+        REQUEST_LATENCY.labels(endpoint=endpoint).observe(duration)
+        REQUESTS_TOTAL.labels(endpoint=endpoint, status=status_label).inc()
 
-    with torch.no_grad():
-        logits = _MODEL(x)
-        prob = torch.sigmoid(logits).item()
-    label = int(prob >= _THRESHOLD)
-    resp = {"probability": float(prob), "label": label}
 
-    if background_tasks is not None:
-        record = {
-            "request_id": uuid.uuid4().hex,
-            "frames_shape": list(frames.shape),
-            "frames_mean": float(frames.mean()),
-            "frames_std": float(frames.std()),
-            "prediction": resp,
-            "model_name": _MODEL_NAME,
-            "model_version": _MODEL_VERSION,
-            "latency_ms": int((time.time() - start) * 1000),
-        }
-        background_tasks.add_task(_log_request_async, record)
-
-    return resp
+@app.get("/metrics")
+def metrics() -> Response:
+    """Expose Prometheus metrics."""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 # To run locally: uvicorn src.api:app --reload --host 0.0.0.0 --port 8000
