@@ -4,11 +4,14 @@ End-to-end MLOps pipeline for road traffic accident detection (videos → model 
  Built as the final project for **DTU 02476 — Machine Learning Operations (MLOps)**, focusing on applying a range of MLOps/DevOps tools (Hydra, DVC, CI/CD, Cloud Run, Monitoring, load testing, quantization, etc.).
  Data: https://github.com/pavana27/TU-DAT
 
-## Project structure (essentials)
+## Project structure
 ```
-README.md             # You are here
-.devcontainer/        # Devcontainer image + requirements
-.github/workflows/    # CI + data/registry triggers
+README.md             # You are here (project overview/usage)
+mkdocs.yml            # MkDocs config for GitHub Pages docs
+docs/                 # Docs content (overview/pipeline/usage/deployment, assets)
+.devcontainer/        # Devcontainer image + requirements (includes docs deps)
+.github/workflows/    # CI (lint/test), data/registry triggers, docs to Pages
+cloudbuild.yaml       # GCP Cloud Build config
 configs/              # Hydra configs (train/data/experiments)
   ├─ train/train.yaml # batch/k_frames/num_workers/seed...
   ├─ data/*.yaml      # dataset paths/manifests
@@ -35,6 +38,8 @@ scripts/              # Utilities (baseline features, drift report, ONNX quantiz
 tests/                # Pytest (API/train)
 outputs/              # Hydra/W&B runs
 reports/              # Course report/figures (left untouched)
+dummy.npz             # Sample NPZ for API/load tests
+pyproject.toml        # Tooling config (black/isort, etc.)
 ```
 
 ## Quick start (dev)

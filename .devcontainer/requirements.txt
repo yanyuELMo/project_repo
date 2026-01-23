@@ -32,3 +32,5 @@ opencv-python-headless
 locust
 evidently
 prometheus-client
+mkdocs
+mkdocs-material
