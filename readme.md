@@ -145,3 +145,7 @@ Data source:https://github.com/pavana27/TU-DAT
   ```
 - Endpoints: `/drift` (HTML report), `/drift/json` (JSON summary).
 - Docker: `deploy/monitoring/Dockerfile` (port 8080).
+- Cloud Run (deployed): `https://drift-api-809414772908.europe-west10.run.app`; quick check:
+  ```bash
+  curl -s https://drift-api-809414772908.europe-west10.run.app/drift/json | head
+  ```
