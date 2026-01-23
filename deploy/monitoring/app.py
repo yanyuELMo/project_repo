@@ -19,12 +19,11 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+from evidently.legacy.metric_preset import DataDriftPreset, DataQualityPreset
+from evidently.legacy.report import Report
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from google.cloud import storage
-
-from evidently.legacy.metric_preset import DataDriftPreset, DataQualityPreset
-from evidently.legacy.report import Report
 
 app = FastAPI(title="Drift Monitoring", version="0.1.0")
 
@@ -56,7 +55,9 @@ def fetch_latest_logs(limit: int) -> List[dict]:
         except Exception:
             continue
     if not rows:
-        raise HTTPException(status_code=404, detail="No logs available for current data")
+        raise HTTPException(
+            status_code=404, detail="No logs available for current data"
+        )
     return rows
 
 
@@ -125,7 +126,9 @@ def sanitize_dict(payload):
             return obj if np.isfinite(obj) else None
         if hasattr(obj, "item"):
             val = obj.item()
-            return val if not (isinstance(val, float) and not np.isfinite(val)) else None
+            return (
+                val if not (isinstance(val, float) and not np.isfinite(val)) else None
+            )
         return obj
 
     cleaned = sanitize(payload)
@@ -133,7 +136,12 @@ def sanitize_dict(payload):
         return json.loads(json.dumps(cleaned, allow_nan=False))
     except ValueError:
         # fallback: permit NaN in dumps then replace special values with None by parsing via json.loads
-        return json.loads(json.dumps(cleaned, allow_nan=True).replace("NaN", "null").replace("Infinity", "null").replace("-Infinity", "null"))
+        return json.loads(
+            json.dumps(cleaned, allow_nan=True)
+            .replace("NaN", "null")
+            .replace("Infinity", "null")
+            .replace("-Infinity", "null")
+        )
 
 
 @app.get("/drift", response_class=HTMLResponse)
